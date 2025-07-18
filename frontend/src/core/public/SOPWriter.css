@@ -1,0 +1,120 @@
+/* SOP Writer Animation Styles */
+.essay-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.essay-container.updating {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.update-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.update-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(59, 130, 246, 0.2);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.update-overlay span {
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 15px;
+    text-align: center;
+    padding: 0 20px;
+}
+
+/* Ensure the textarea takes full height */
+.essay-editor {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    resize: none;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+.essay-editor:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Add a subtle pulse animation when content updates */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+.essay-container.updating .essay-editor {
+    animation: pulse 1.5s infinite;
+    position: relative;
+}
+
+/* Make sure the overlay stays on top of the textarea */
+.essay-editor-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
