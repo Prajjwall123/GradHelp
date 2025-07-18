@@ -3,8 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Check, Calendar, ExternalLink, GraduationCap, Clock, CreditCard, X, Award } from 'lucide-react';
 import { getCourseById } from '../../utils/coursesHelper';
 import { getScholarshipsByUniversityId, applyForScholarship } from '../../utils/scholarshipHelper';
+import { createApplication } from '../../utils/applicationHelper';
 import { isAuthenticated, getUserInfo } from '../../utils/authHelper';
-import { createApplicationAndInitiatePayment } from '../../utils/paymentHelper';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Chatbot from '../../components/Chatbot';
@@ -14,22 +14,29 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedIntake, setSelectedIntake] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentError, setPaymentError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const steps = [
     { id: 'intake', title: 'Pick Intake' },
     { id: 'requirements', title: 'Entry Requirements' },
     { id: 'terms', title: 'Terms & Conditions' },
-    { id: 'payment', title: 'Application Fee' },
+    { id: 'review', title: 'Review & Submit' }
   ];
 
   const handleNext = () => {
+    // Validate current step before proceeding
+    if (currentStep === 0 && !selectedIntake) {
+      toast.error('Please select an intake');
+      return;
+    }
+
+    if (currentStep === 2 && !agreedToTerms) {
+      toast.error('Please agree to the terms and conditions');
+      return;
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      handleSubmit();
     }
   };
 
@@ -37,19 +44,16 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
-    if (currentStep === steps.length - 1 && !paymentCompleted) {
-      toast.error('Please complete the payment first');
+  const handleSubmit = async () => {
+    if (currentStep !== steps.length - 1) {
+      handleNext();
       return;
     }
 
-    if (currentStep === 0 && !selectedIntake) {
-      toast.error('Please select an intake');
-      return;
-    }
+    setIsSubmitting(true);
 
-    if (currentStep === steps.length - 1) {
-      onSubmit({
+    try {
+      await onSubmit({
         intake: selectedIntake,
         course: course.course_name,
         university: course.university?.name,
@@ -57,44 +61,11 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
         terms: course.terms_and_conditions
       });
       onClose();
-    } else {
-      handleNext();
-    }
-  };
-
-  const handlePayment = async () => {
-    try {
-      setPaymentLoading(true);
-      setPaymentError('');
-
-      // Store course ID and intake in localStorage before redirecting
-      if (!course?._id) {
-        throw new Error('Course ID not found');
-      }
-      localStorage.setItem('application_course_id', course._id);
-      localStorage.setItem('application_intake', selectedIntake);
-
-      // Create application and initiate payment
-      const paymentResponse = await createApplicationAndInitiatePayment(1000, course._id, selectedIntake);
-
-      if (paymentResponse.success) {
-        // Close the modal
-        onClose();
-
-        // Redirect to payment URL in same tab
-        window.location.href = paymentResponse.data.payment_url;
-      } else {
-        throw new Error(paymentResponse.message || 'Failed to create application and initiate payment');
-      }
     } catch (error) {
-      console.error('Payment error:', error);
-      setPaymentError(error.message || 'Failed to create application and initiate payment');
-      toast.error(paymentError);
-      // Clean up localStorage on error
-      localStorage.removeItem('application_course_id');
-      localStorage.removeItem('application_intake');
+      console.error('Error submitting application:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit application');
     } finally {
-      setPaymentLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -135,48 +106,55 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
       case 2:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Terms and Conditions</h3>
-            <div className="max-h-60 overflow-y-auto p-4 bg-gray-50 rounded-md text-sm">
-              {course.terms_and_conditions?.map((term, index) => (
-                <p key={index} className="mb-2">
-                  {index + 1}. {term}
-                </p>
-              ))}
+            <h3 className="text-lg font-medium">Terms & Conditions</h3>
+            <div className="prose prose-sm max-h-60 overflow-y-auto p-4 bg-gray-50 rounded-md">
+              {course.terms_and_conditions || 'No terms and conditions provided.'}
             </div>
             <div className="flex items-start mt-4">
-              <input
-                id="terms-checkbox"
-                type="checkbox"
-                checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms-checkbox" className="ml-2 block text-sm text-gray-700">
-                I agree to the terms and conditions
-              </label>
+              <div className="flex items-center h-5">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="terms" className="font-medium text-gray-700">
+                  I agree to the terms and conditions
+                </label>
+              </div>
             </div>
           </div>
         );
       case 3:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Application Fee Payment</h3>
-            <p className="text-gray-600">Please complete the payment of your application fee to proceed.</p>
-            {paymentError && (
-              <div className="text-red-500 text-sm mb-2">{paymentError}</div>
-            )}
-            <div className="mt-4">
-              <button
-                onClick={handlePayment}
-                disabled={paymentLoading}
-                className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${paymentLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  } text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm`}
-              >
-                {paymentLoading ? 'Processing...' : 'Make Payment'}
-              </button>
+            <h3 className="text-lg font-medium">Review Your Application</h3>
+            <div className="space-y-4 p-4 bg-gray-50 rounded-md">
+              <div>
+                <h4 className="font-medium text-gray-700">Course Details</h4>
+                <p className="text-gray-600">{course.course_name}</p>
+                <p className="text-sm text-gray-500">{course.university?.name}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-700">Selected Intake</h4>
+                <p className="text-gray-600">{selectedIntake}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-700">Entry Requirements</h4>
+                <ul className="list-disc list-inside text-sm text-gray-600">
+                  {course.entry_requirements?.map((req, i) => (
+                    <li key={i}>{req}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
+            <p className="text-sm text-gray-500">
+              By submitting this application, you agree to the terms and conditions.
+            </p>
           </div>
         );
       default:
@@ -185,80 +163,94 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50">
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50" />
-
-      {/* Modal Container */}
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white z-10 px-4 pt-5 pb-4 sm:p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">New Application</h2>
-                <p className="text-sm text-gray-500">{course.course_name} - {course.university?.name}</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Stepper */}
-            <div className="mb-6 mt-4">
-              <div className="flex justify-between">
-                {steps.map((step, index) => (
-                  <div key={step.id} className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= index ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                        }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <span className={`text-xs mt-1 ${currentStep >= index ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
-                      {step.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="relative mt-2">
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2"></div>
-                <div
-                  className="absolute top-1/2 left-0 h-0.5 bg-blue-600 -translate-y-1/2 transition-all duration-300"
-                  style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-                ></div>
-              </div>
-            </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Apply for {course.course_name}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500"
+              disabled={isSubmitting}
+            >
+              <X className="h-6 w-6" />
+            </button>
           </div>
 
+          {/* Progress Steps */}
+          <nav aria-label="Progress" className="mb-8">
+            <ol className="flex items-center">
+              {steps.map((step, stepIdx) => (
+                <li
+                  key={step.title}
+                  className={`${stepIdx !== steps.length - 1 ? 'flex-1' : ''} relative`}
+                >
+                  {stepIdx < currentStep ? (
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="mt-2 text-xs font-medium text-blue-600">{step.title}</span>
+                    </div>
+                  ) : stepIdx === currentStep ? (
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-blue-600 bg-white">
+                        <span className="text-blue-600">{stepIdx + 1}</span>
+                      </div>
+                      <span className="mt-2 text-xs font-medium text-blue-600">{step.title}</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 bg-white">
+                        <span className="text-gray-500">{stepIdx + 1}</span>
+                      </div>
+                      <span className="mt-2 text-xs font-medium text-gray-500">{step.title}</span>
+                    </div>
+                  )}
+                  {stepIdx < steps.length - 1 && (
+                    <div className="absolute top-4 left-1/2 w-full h-0.5 -z-10 bg-gray-200"></div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
+
           {/* Step Content */}
-          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="mt-6">
             {renderStepContent()}
           </div>
 
-          {/* Footer Buttons */}
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          {/* Navigation Buttons */}
+          <div className="mt-8 flex justify-between">
+            <button
+              type="button"
+              onClick={currentStep === 0 ? onClose : handleBack}
+              disabled={isSubmitting}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {currentStep === 0 ? 'Cancel' : 'Back'}
+            </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${currentStep === steps.length - 1
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm`}
+              disabled={isSubmitting || (currentStep === 0 && !selectedIntake) || (currentStep === 2 && !agreedToTerms)}
+              className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${(currentStep === 0 && !selectedIntake) || (currentStep === 2 && !agreedToTerms) || isSubmitting
+                ? 'bg-blue-300 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
             >
-              {currentStep === steps.length - 1 ? 'Make Payment' : 'Next'}
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {currentStep === steps.length - 1 ? 'Submitting...' : 'Processing...'}
+                </>
+              ) : (
+                <>{currentStep === steps.length - 1 ? 'Submit Application' : 'Next'}</>
+              )}
             </button>
-            {currentStep > 0 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                Back
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -434,9 +426,10 @@ const CourseDetail = () => {
   // Handle application submission
   const handleApplicationSubmit = async (applicationData) => {
     try {
-      const result = await createApplicationAndInitiatePayment(1000, course._id, applicationData.intake);
-      console.log('Application created:', result);
+      // Create the application
+      await createApplication(course._id, applicationData.intake);
 
+      // Show success message
       toast.success('Application created successfully!', {
         position: 'top-right',
         autoClose: 3000,
@@ -449,10 +442,8 @@ const CourseDetail = () => {
       // Close the modal
       setShowApplicationModal(false);
 
-      // Redirect to my-applications page after a short delay
-      setTimeout(() => {
-        navigate('/my-applications');
-      }, 1000);
+      // Redirect to my-applications page
+      navigate('/my-applications');
 
     } catch (error) {
       console.error('Error creating application:', error);
