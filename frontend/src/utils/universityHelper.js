@@ -16,7 +16,7 @@ const getUniversityById = async (id) => {
         const response = await API.get(`/universities/${id}`);
         console.log('University API response:', response);
 
-        // Handle both nested and direct response structures
+        
         const universityData = response.data?.university || response.data;
         if (!universityData) {
             throw new Error('No university data found in response');

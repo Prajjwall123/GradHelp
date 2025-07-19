@@ -1,12 +1,6 @@
 import API from './api';
 import { getUserInfo } from './authHelper';
 
-/**
- * Create a new application
- * @param {string} courseId - The ID of the course to apply for
- * @param {string} intake - The selected intake
- * @returns {Promise<Object>} The created application data
- */
 export const createApplication = async (courseId, intake) => {
     try {
         const user = getUserInfo();
@@ -27,10 +21,7 @@ export const createApplication = async (courseId, intake) => {
     }
 };
 
-/**
- * Get all applications for the current user
- * @returns {Promise<Array>} List of user's applications
- */
+
 export const getUserApplications = async () => {
     try {
         const user = getUserInfo();
@@ -46,11 +37,7 @@ export const getUserApplications = async () => {
     }
 };
 
-/**
- * Delete an application
- * @param {string} applicationId - The ID of the application to delete
- * @returns {Promise<Object>} The response data
- */
+
 export const cancelApplication = async (applicationId) => {
     try {
         const user = getUserInfo();
@@ -66,12 +53,7 @@ export const cancelApplication = async (applicationId) => {
     }
 };
 
-/**
- * Update the SOP for an application
- * @param {string} applicationId - The ID of the application to update
- * @param {string} sop - The new Statement of Purpose content
- * @returns {Promise<Object>} The updated application data
- */
+
 export const updateApplicationSOP = async (applicationId, sop) => {
     try {
         const user = getUserInfo();

@@ -6,14 +6,14 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { toast } from 'react-toastify';
 
-// Memoize the speech synthesis voices
+
 const useVoices = () => {
     const [voices, setVoices] = useState([]);
 
     useEffect(() => {
         const updateVoices = () => {
             const availableVoices = window.speechSynthesis.getVoices();
-            // Prefer natural-sounding voices
+            
             const preferredVoices = availableVoices.filter(v =>
                 v.lang.includes('en-') &&
                 (v.name.includes('Natural') || v.name.includes('Natural'))
@@ -47,25 +47,25 @@ const MockVisaInterview = () => {
     const voices = useVoices();
     const userProfile = useMemo(() => getUserInfo(), []);
 
-    // Set the best available voice when voices are loaded
+    
     useEffect(() => {
         if (voices.length > 0 && !selectedVoice) {
-            // Prefer female voices
+            
             const femaleVoices = voices.filter(v => {
                 const voiceName = v.name.toLowerCase();
                 return voiceName.includes('female') ||
                     voiceName.includes('woman') ||
-                    voiceName.includes('zira') ||  // Common female voice in Windows
-                    voiceName.includes('samantha') ||  // Common female voice in macOS
-                    voiceName.includes('karen');  // Common female voice in some systems
+                    voiceName.includes('zira') ||  
+                    voiceName.includes('samantha') ||  
+                    voiceName.includes('karen');  
             });
 
-            // If no explicitly female voices found, try to find natural-sounding ones
+            
             const naturalVoices = voices.filter(v =>
                 v.name.toLowerCase().includes('natural')
             );
 
-            // Use the first available in this order: female voices > natural voices > any voice
+            
             setSelectedVoice(
                 femaleVoices[0] ||
                 naturalVoices[0] ||
@@ -74,13 +74,13 @@ const MockVisaInterview = () => {
         }
     }, [voices, selectedVoice]);
 
-    // Initialize speech synthesis and recognition
+    
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // Initialize speech synthesis
+            
             synthRef.current = window.speechSynthesis;
 
-            // Initialize speech recognition
+            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 recognitionRef.current = new SpeechRecognition();
@@ -114,11 +114,11 @@ const MockVisaInterview = () => {
             }
         }
 
-        // Start the interview when component mounts
+        
         startInterview();
 
         return () => {
-            // Cleanup
+            
             if (recognitionRef.current) {
                 recognitionRef.current.stop();
             }
@@ -128,39 +128,39 @@ const MockVisaInterview = () => {
         };
     }, []);
 
-    // Auto-scroll to bottom of conversation
+    
     useEffect(() => {
         if (conversationEndRef.current) {
             conversationEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [conversation, feedback]);
 
-    // Speak text using the Web Speech API with optimizations
+    
     const speak = useCallback((text) => {
         return new Promise((resolve) => {
             if (!text || !synthRef.current) return resolve();
 
-            // Cancel any ongoing speech
+            
             if (synthRef.current.speaking) {
                 synthRef.current.cancel();
             }
 
             const utterance = new SpeechSynthesisUtterance(text);
 
-            // Optimize speech settings
+            
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // Use the selected natural voice if available
+            
             if (selectedVoice) {
                 utterance.voice = selectedVoice;
             } else if (voices.length > 0) {
-                // Fallback to first available voice
+                
                 utterance.voice = voices[0];
             }
 
-            // Set up event handlers
+            
             utterance.onend = () => {
                 setIsSpeaking(false);
                 resolve();
@@ -172,14 +172,14 @@ const MockVisaInterview = () => {
                 resolve();
             };
 
-            // Start speaking
+            
             utteranceRef.current = utterance;
             synthRef.current.speak(utterance);
             setIsSpeaking(true);
         });
     }, [selectedVoice, voices]);
 
-    // Start a new interview
+    
     const startInterview = async () => {
         try {
             setIsLoading(true);
@@ -203,7 +203,7 @@ const MockVisaInterview = () => {
         }
     };
 
-    // Handle user's spoken response
+    
     const handleUserResponse = async (userText) => {
         if (!userText.trim()) return;
 
@@ -220,7 +220,7 @@ const MockVisaInterview = () => {
 
                 if (response.isComplete) {
                     setIsInterviewComplete(true);
-                    // Don't wait for analysis to finish before showing the message
+                    
                     analyzeInterviewPerformance([...conversation, officerMessage])
                         .then(analysis => {
                             if (analysis.success) {
@@ -239,7 +239,7 @@ const MockVisaInterview = () => {
         }
     };
 
-    // Toggle microphone on/off
+    
     const toggleListening = useCallback(() => {
         if (isListening) {
             recognitionRef.current.stop();
@@ -256,7 +256,7 @@ const MockVisaInterview = () => {
         }
     }, [isListening]);
 
-    // Replay the last message
+    
     const replayLastMessage = useCallback(() => {
         if (conversation.length > 0) {
             const lastMessage = conversation[conversation.length - 1];
@@ -266,7 +266,7 @@ const MockVisaInterview = () => {
         }
     }, [conversation, speak]);
 
-    // Memoize the conversation items to prevent unnecessary re-renders
+    
     const conversationItems = useMemo(() => {
         return conversation.map((msg, index) => (
             <div

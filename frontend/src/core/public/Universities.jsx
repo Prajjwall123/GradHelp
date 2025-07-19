@@ -15,7 +15,7 @@ const Universities = () => {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [filtersApplied, setFiltersApplied] = useState(false);
 
-  // Format currency
+  
   const formatCurrency = (amount) => {
     if (amount === 0 || amount === undefined) return 'Contact University';
     return new Intl.NumberFormat('en-US', {
@@ -25,7 +25,7 @@ const Universities = () => {
     }).format(amount);
   };
 
-  // Get image URL
+  
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/100';
     if (imagePath.startsWith('http')) return imagePath;
@@ -48,7 +48,7 @@ const Universities = () => {
     fetchData();
   }, []);
 
-  // Extract unique countries from universities
+  
   const getAvailableCountries = (universities) => {
     const countrySet = new Set();
     universities.forEach(uni => {
@@ -60,20 +60,20 @@ const Universities = () => {
     return ['All Countries', ...Array.from(countrySet).sort()];
   };
 
-  // Handle form submission
+  
   const handleSearch = (e) => {
     e.preventDefault();
     setFiltersApplied(true);
   };
 
-  // Handle clearing all filters
+  
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCountry('all');
     setFiltersApplied(false);
   };
 
-  // Filter universities based on search term and country
+  
   const filteredUniversities = universities.filter(university => {
     const matchesSearch =
       searchTerm === '' ||
@@ -112,7 +112,7 @@ const Universities = () => {
     );
   }
 
-  // Error state
+  
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">

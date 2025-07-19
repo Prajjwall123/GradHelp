@@ -4,11 +4,6 @@ import Footer from "../../components/Footer";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import illustration from "../../assets/illustration.png";
 
-// ------------------------------------------------------
-// Utility data & helpers
-// ------------------------------------------------------
-
-// Very lightweight static data – in a real-world app this could come from an API
 const countries = {
     USA: {
         cities: [
@@ -33,7 +28,7 @@ const countries = {
     }
 };
 
-// Numerical multipliers for scales 1-5. You can tweak these numbers for realism.
+
 const SCALE_COST = {
     1: 50,
     2: 100,
@@ -42,7 +37,7 @@ const SCALE_COST = {
     5: 250
 };
 
-// Daily life cost presets
+
 const TRANSPORT_COST = {
     Never: 0,
     "Few times / month": 30,
@@ -51,31 +46,31 @@ const TRANSPORT_COST = {
 };
 
 export default function CostOfLivingCalculator() {
-    // --------------------------------------------------
-    // State
-    // --------------------------------------------------
+    
+    
+    
     const [step, setStep] = useState(0);
 
-    // Housing selections
+    
     const [country, setCountry] = useState("");
     const [city, setCity] = useState("");
-    const [accommodation, setAccommodation] = useState(""); // dorm | apartment
+    const [accommodation, setAccommodation] = useState(""); 
 
-    // Fooding
-    const [eatOutFreq, setEatOutFreq] = useState(null); // 1-5
-    const [foodSpend, setFoodSpend] = useState(null);   // 1-5
+    
+    const [eatOutFreq, setEatOutFreq] = useState(null); 
+    const [foodSpend, setFoodSpend] = useState(null);   
 
-    // Clothing
-    const [clothingItems, setClothingItems] = useState(null); // 1-5
-    const [clothingSpend, setClothingSpend] = useState(null); // 1-5
+    
+    const [clothingItems, setClothingItems] = useState(null); 
+    const [clothingSpend, setClothingSpend] = useState(null); 
 
-    // Daily life
+    
     const [transportFreq, setTransportFreq] = useState("Never");
-    const [internetCost, setInternetCost] = useState(50); // numeric input
+    const [internetCost, setInternetCost] = useState(50); 
 
-    // --------------------------------------------------
-    // Derived calculations
-    // --------------------------------------------------
+    
+    
+    
     const selectedCityData = (() => {
         if (!country || !city) return null;
         return countries[country].cities.find(c => c.name === city);
@@ -88,9 +83,9 @@ export default function CostOfLivingCalculator() {
 
     const total = housingCost + foodingCost + clothingCost + dailyLifeCost;
 
-    // --------------------------------------------------
-    // Helpers
-    // --------------------------------------------------
+    
+    
+    
     const next = () => setStep(prev => Math.min(prev + 1, steps.length - 1));
     const prev = () => setStep(prev => Math.max(prev - 1, 0));
 
@@ -102,7 +97,7 @@ export default function CostOfLivingCalculator() {
         "Result"
     ];
 
-    // Basic form validation for the Next button
+    
     const canProceed = () => {
         switch (step) {
             case 0:
@@ -118,14 +113,14 @@ export default function CostOfLivingCalculator() {
         }
     };
 
-    // --------------------------------------------------
-    // UI components
-    // --------------------------------------------------
+    
+    
+    
 
-    // Accent color for consistency
+    
     const accent = "bg-blue-600 text-white";
 
-    // Section card, matching dashboard style
+    
     const Section = ({ children, title }) => (
         <div className="bg-white shadow-lg rounded-2xl border border-gray-100 w-full max-w-4xl mx-auto p-8 mb-8">
             {title && (
@@ -135,7 +130,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Stepper, matching dashboard style
+    
     const Stepper = () => (
         <div className="flex items-center justify-center my-8 gap-4 select-none">
             {steps.map((label, index) => (
@@ -157,12 +152,12 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Button styles
+    
     const buttonBase = "inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-colors";
     const buttonPrimary = `${buttonBase} bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50`;
     const buttonSecondary = `${buttonBase} bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50`;
 
-    // Scale 1-5 picker rendered as checkbox-style radios
+    
     const ScaleSelector = ({ value, onChange, label }) => (
         <div className="flex flex-col gap-4">
             <label className="text-sm font-medium text-gray-700 mb-2">{label}</label>
@@ -184,7 +179,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Country selector with modern styling
+    
     const CountrySelector = ({ value, onChange, label }) => (
         <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -203,7 +198,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // City selector with modern styling
+    
     const CitySelector = ({ value, onChange, label, country }) => (
         <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -223,7 +218,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Accommodation selector
+    
     const AccommodationSelector = ({ value, onChange, label }) => (
         <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -239,7 +234,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Transport frequency selector
+    
     const TransportFrequency = ({ value, onChange, label }) => (
         <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -257,7 +252,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Internet cost input
+    
     const InternetCostInput = ({ value, onChange, label }) => (
         <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -274,7 +269,7 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // Result display
+    
     const ResultDisplay = () => (
         <Section title="Cost of Living Summary">
             <div className="space-y-6">
@@ -304,7 +299,7 @@ export default function CostOfLivingCalculator() {
         </Section>
     );
 
-    // Cost Breakdown component
+    
     const CostBreakdown = () => (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex flex-col gap-4">
@@ -332,13 +327,13 @@ export default function CostOfLivingCalculator() {
         </div>
     );
 
-    // --------------------------------------------------
-    // Render per-step content
-    // --------------------------------------------------
+    
+    
+    
 
     const renderStepContent = () => {
         switch (step) {
-            case 0: // Housing
+            case 0: 
                 return (
                     <Section title="Housing">
                         <div className="space-y-6">
@@ -348,7 +343,7 @@ export default function CostOfLivingCalculator() {
                         </div>
                     </Section>
                 );
-            case 1: // Fooding
+            case 1: 
                 return (
                     <Section title="Fooding">
                         <div className="space-y-6">
@@ -357,7 +352,7 @@ export default function CostOfLivingCalculator() {
                         </div>
                     </Section>
                 );
-            case 2: // Clothing
+            case 2: 
                 return (
                     <Section title="Clothing">
                         <div className="space-y-6">
@@ -366,7 +361,7 @@ export default function CostOfLivingCalculator() {
                         </div>
                     </Section>
                 );
-            case 3: // Daily Life
+            case 3: 
                 return (
                     <Section title="Daily Life">
                         <div className="space-y-6">
@@ -375,7 +370,7 @@ export default function CostOfLivingCalculator() {
                         </div>
                     </Section>
                 );
-            case 4: // Result
+            case 4: 
                 return (
                     <ResultDisplay />
                 );
@@ -384,9 +379,9 @@ export default function CostOfLivingCalculator() {
         }
     };
 
-    // --------------------------------------------------
-    // Main render
-    // --------------------------------------------------
+    
+    
+    
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />

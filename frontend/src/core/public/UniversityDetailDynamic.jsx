@@ -20,7 +20,7 @@ const UniversityDetailDynamic = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
 
-    // Fetch university data
+    
     const { data: university, isLoading, error } = useQuery({
         queryKey: ['university', id],
         queryFn: () => getUniversityById(id),
@@ -31,10 +31,10 @@ const UniversityDetailDynamic = () => {
         retry: 2,
     });
 
-    // Fetch courses and scholarships when university data is loaded
+    
     useEffect(() => {
         if (university) {
-            // Fetch courses
+            
             if (university.courses?.length) {
                 setIsLoadingPrograms(true);
                 Promise.all(university.courses.map(courseId => getCourseById(courseId)))
@@ -48,7 +48,7 @@ const UniversityDetailDynamic = () => {
                     });
             }
 
-            // Fetch scholarships
+            
             getScholarshipsByUniversityId(university._id)
                 .then(fetchedScholarships => {
                     setScholarships(fetchedScholarships);

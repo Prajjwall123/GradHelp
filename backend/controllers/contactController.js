@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const ContactMessage = require('../models/contactMessage');
 
-// Create a transporter using the same configuration as in email.js
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -14,7 +14,7 @@ const sendContactEmail = async (message) => {
     try {
         const mailOptions = {
             from: `"Gradly Contact Form" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER, // Sending to the same email as in .env
+            to: process.env.EMAIL_USER,
             subject: `New Contact Form: ${message.subject}`,
             html: `
                 <h2>New Contact Form Submission</h2>
@@ -42,7 +42,7 @@ const submitContactForm = async (req, res) => {
         const { name, email, subject, message } = req.body;
         const ipAddress = req.ip || req.connection.remoteAddress;
 
-        // Create new message
+
         const newMessage = new ContactMessage({
             name,
             email,
@@ -51,15 +51,15 @@ const submitContactForm = async (req, res) => {
             ipAddress
         });
 
-        // Save to database
+
         await newMessage.save();
 
-        // Send email
+
         const emailSent = await sendContactEmail(newMessage);
 
         if (!emailSent) {
             console.error('Failed to send notification email for contact form submission');
-            // Continue even if email fails, as the message is already saved in the database
+
         }
 
         res.status(201).json({

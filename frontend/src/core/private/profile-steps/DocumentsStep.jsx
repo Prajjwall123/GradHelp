@@ -1,4 +1,4 @@
-// src/core/private/profile-steps/DocumentsStep.jsx
+
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
@@ -8,21 +8,21 @@ const DOCUMENT_TYPES = {
         description: 'A clear copy of your passport information page',
         required: true,
         accept: 'image/*,.pdf',
-        maxSize: 5 * 1024 * 1024, // 5MB
+        maxSize: 5 * 1024 * 1024, 
     },
     academicTranscripts: {
         name: 'Academic Transcripts',
         description: 'Official transcripts from all institutions attended',
         required: true,
         accept: '.pdf,.jpg,.jpeg,.png',
-        maxSize: 10 * 1024 * 1024, // 10MB
+        maxSize: 10 * 1024 * 1024, 
     },
     recommendationLetters: {
         name: 'Recommendation Letters',
         description: 'At least two academic or professional references',
         required: false,
         accept: '.pdf,.doc,.docx',
-        maxSize: 5 * 1024 * 1024, // 5MB
+        maxSize: 5 * 1024 * 1024, 
         multiple: true,
     },
     resume: {
@@ -30,14 +30,14 @@ const DOCUMENT_TYPES = {
         description: 'Your updated resume or curriculum vitae',
         required: false,
         accept: '.pdf,.doc,.docx',
-        maxSize: 5 * 1024 * 1024, // 5MB
+        maxSize: 5 * 1024 * 1024, 
     },
     personalStatement: {
         name: 'Personal Statement',
         description: 'A statement of purpose or letter of motivation',
         required: true,
         accept: '.pdf,.doc,.docx',
-        maxSize: 5 * 1024 * 1024, // 5MB
+        maxSize: 5 * 1024 * 1024, 
     },
 };
 
@@ -52,7 +52,7 @@ const DocumentsStep = ({ formData, handleChange }) => {
 
         if (!file) return;
 
-        // Validate file type
+        
         const fileExtension = file.name.split('.').pop().toLowerCase();
         const acceptedTypes = config.accept.split(',').map(ext => ext.replace('.', ''));
 
@@ -64,7 +64,7 @@ const DocumentsStep = ({ formData, handleChange }) => {
             return;
         }
 
-        // Validate file size
+        
         if (file.size > config.maxSize) {
             const maxSizeMB = config.maxSize / (1024 * 1024);
             setErrors(prev => ({
@@ -74,14 +74,14 @@ const DocumentsStep = ({ formData, handleChange }) => {
             return;
         }
 
-        // Clear any previous errors
+        
         setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[field];
             return newErrors;
         });
 
-        // Simulate upload progress
+        
         setUploading(true);
         setUploadProgress(prev => ({ ...prev, [field]: 0 }));
 
@@ -93,7 +93,7 @@ const DocumentsStep = ({ formData, handleChange }) => {
             });
         }, 100);
 
-        // Simulate API call
+        
         setTimeout(() => {
             clearInterval(interval);
             setUploadProgress(prev => {

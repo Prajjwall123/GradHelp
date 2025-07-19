@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// Index for email field
+
 UserSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', UserSchema);

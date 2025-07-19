@@ -1,4 +1,4 @@
-// src/core/private/profile-steps/VisaStep.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Globe, Calendar, FileText, ChevronDown } from 'lucide-react';
 
@@ -33,7 +33,7 @@ const VisaStep = ({ formData, handleChange }) => {
         handleChange(e);
     };
 
-    // Update showPreviousVisa when formData changes
+    
     useEffect(() => {
         setShowPreviousVisa(formData.previous_visa_application || false);
     }, [formData.previous_visa_application]);

@@ -4,14 +4,11 @@ const Scholarship = require('../models/scholarship');
 const Profile = require('../models/profile');
 const User = require('../models/user');
 
-// @desc    Apply for a scholarship
-// @route   POST /api/scholarship-applications
-// @access  Public
 const createScholarshipApplication = async (req, res) => {
     try {
         const { scholarshipId, userId } = req.body;
 
-        // 1. Check if scholarship exists
+
         const scholarship = await Scholarship.findById(scholarshipId);
         if (!scholarship) {
             return res.status(404).json({
@@ -20,7 +17,7 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-        // 2. Find user's profile
+
         const profile = await Profile.findOne({ user: userId });
         if (!profile) {
             return res.status(404).json({
@@ -29,7 +26,7 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-        // 3. Find an application to a course in the same university
+
         const application = await Application.findOne({
             profile: profile._id
         }).populate({
@@ -44,7 +41,7 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-        // 4. Check if user has already applied for this scholarship
+
         const existingApplication = await ScholarshipApplication.findOne({
             profile: profile._id,
             scholarship: scholarshipId
@@ -57,10 +54,10 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-        // 5. Create new scholarship application
+
         const scholarshipApplication = new ScholarshipApplication({
             user: userId,
-            profile: profile._id,  // Store both user and profile references
+            profile: profile._id,
             application: application._id,
             scholarship: scholarshipId,
             status: 'pending'
@@ -68,18 +65,18 @@ const createScholarshipApplication = async (req, res) => {
 
         await scholarshipApplication.save();
 
-        // 6. Get the populated application data
+
         const populatedApp = await ScholarshipApplication.findById(scholarshipApplication._id)
             .populate('user', 'full_name email')
             .populate('scholarship', 'name')
             .populate('application');
 
-        // 7. Get the profile data separately
+
         const profileData = await Profile.findOne({ user: userId })
             .select('firstName lastName')
             .lean();
 
-        // 8. Combine the data for the response
+
         const response = {
             ...populatedApp.toObject(),
             profile: profileData
@@ -99,9 +96,9 @@ const createScholarshipApplication = async (req, res) => {
     }
 };
 
-// @desc    Get scholarship applications for a user
-// @route   GET /api/scholarship-applications/me
-// @access  Public
+
+
+
 const getMyScholarshipApplications = async (req, res) => {
     try {
         const { userId } = req.query;
@@ -113,7 +110,7 @@ const getMyScholarshipApplications = async (req, res) => {
             });
         }
 
-        // Find user's profile
+
         const profile = await Profile.findOne({ user: userId });
         if (!profile) {
             return res.status(404).json({
@@ -122,7 +119,7 @@ const getMyScholarshipApplications = async (req, res) => {
             });
         }
 
-        // Find all scholarship applications for this user
+
         const applications = await ScholarshipApplication.find({ user: userId })
             .populate('scholarship', 'name description deadline')
             .populate('application', 'status')
@@ -143,9 +140,9 @@ const getMyScholarshipApplications = async (req, res) => {
     }
 };
 
-// @desc    Update scholarship application status
-// @route   PUT /api/scholarship-applications/:id/status
-// @access  Public
+
+
+
 const updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body;

@@ -1,9 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize the Google Generative AI with API key from environment variables
+
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
-// Common study visa document requirements
+
 const STUDY_VISA_DOCS = `
 1. Valid passport (6+ months validity)
 2. DS-160 confirmation page
@@ -16,7 +16,7 @@ const STUDY_VISA_DOCS = `
 9. Proof of financial support (bank statements, sponsor letters)
 10. Proof of intent to return home (family ties, property, job offer)`;
 
-// Common interview questions to reduce API calls
+
 const COMMON_QUESTIONS = [
     "Why do you want to study in the US?",
     "Why did you choose this university?",
@@ -30,21 +30,21 @@ const COMMON_QUESTIONS = [
     "Where will you live during your studies?"
 ];
 
-// Cache for storing responses
-const responseCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Function to get a random question without API call
+const responseCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; 
+
+
 const getRandomQuestion = () => {
     return COMMON_QUESTIONS[Math.floor(Math.random() * COMMON_QUESTIONS.length)];
 };
 
-// Generate a cache key
+
 const getCacheKey = (type, ...args) => {
     return `${type}:${JSON.stringify(args)}`;
 };
 
-// Check cache before making API calls
+
 const checkCache = (key) => {
     const cached = responseCache.get(key);
     if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
@@ -53,15 +53,15 @@ const checkCache = (key) => {
     return null;
 };
 
-// Function to generate visa interview response
+
 export const generateVisaInterviewResponse = async (messages) => {
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-        // Get the last user message
+        
         const lastMessage = messages[messages.length - 1].content.toLowerCase();
 
-        // Check for document-related queries
+        
         if (lastMessage.includes('document') || lastMessage.includes('bring') || lastMessage.includes('need')) {
             return {
                 success: true,
@@ -69,7 +69,7 @@ export const generateVisaInterviewResponse = async (messages) => {
             };
         }
 
-        // Check for common questions
+        
         if (lastMessage.includes('common question') || lastMessage.includes('ask') || lastMessage.includes('prepare')) {
             const questionsList = COMMON_QUESTIONS.map((q, i) => `${i + 1}. ${q}`).join('\n');
             return {
@@ -78,7 +78,7 @@ export const generateVisaInterviewResponse = async (messages) => {
             };
         }
 
-        // For other queries, use the AI
+        
         const chat = model.startChat({
             generationConfig: {
                 temperature: 0.7,
@@ -114,7 +114,7 @@ export const generateVisaInterviewResponse = async (messages) => {
     }
 };
 
-// Optimized interview scenario generation
+
 export const generateVisaInterviewScenario = async (userProfile = {}) => {
     const cacheKey = getCacheKey('scenario', JSON.stringify(userProfile));
     const cached = checkCache(cacheKey);
@@ -145,15 +145,15 @@ export const generateVisaInterviewScenario = async (userProfile = {}) => {
     } catch (error) {
         console.error('Error generating scenario:', error);
         return {
-            success: true, // Still return success to keep the flow going
+            success: true, 
             message: getRandomQuestion()
         };
     }
 };
 
-// Optimized interview continuation
+
 export const continueVisaInterview = async (conversationHistory, userResponse) => {
-    // Use a simpler cache key for continuation
+    
     const cacheKey = getCacheKey('continue', userResponse.substring(0, 50));
     const cached = checkCache(cacheKey);
     if (cached) return cached;
@@ -168,7 +168,7 @@ export const continueVisaInterview = async (conversationHistory, userResponse) =
             }
         });
 
-        // Only send the last 2 messages for context to reduce payload
+        
         const recentMessages = conversationHistory.slice(-2);
         const prompt = `As a visa officer, respond to this in 1-2 sentences: "${userResponse}"`;
 
@@ -195,10 +195,10 @@ export const continueVisaInterview = async (conversationHistory, userResponse) =
     }
 };
 
-// Simplified performance analysis
+
 export const analyzeInterviewPerformance = async (conversationHistory) => {
     try {
-        // Only analyze the last 5 exchanges to reduce processing
+        
         const recentExchanges = conversationHistory.slice(-10);
         const model = genAI.getGenerativeModel({
             model: 'gemini-1.5-flash',
@@ -227,7 +227,7 @@ export const analyzeInterviewPerformance = async (conversationHistory) => {
     }
 };
 
-// Function to analyze visa documents
+
 export const analyzeVisaDocuments = async (documentText) => {
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });

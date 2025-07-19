@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Star, Bookmark, ChevronDown, Award } from 'lucide-react';
 
-// Sample data for demonstration - in a real app, this would come from props or context
+
 const sampleCards = [];
 
 const Sidebar = ({
@@ -26,7 +26,7 @@ const Sidebar = ({
     onFilterChange(filterType, value);
   };
 
-  // Safely get filter arrays with fallback to empty arrays
+  
   const safeFilter = (filterType) => Array.isArray(filters[filterType]) ? filters[filterType] : [];
   const safeOptions = (optionType) => Array.isArray(filterOptions[optionType]) ? filterOptions[optionType] : [];
 

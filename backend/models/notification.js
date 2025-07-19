@@ -16,12 +16,12 @@ const notificationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    // Reference to the related entity (e.g., application, scholarship, etc.)
+
     relatedEntity: {
         type: mongoose.Schema.Types.ObjectId,
         refPath: 'onModel'
     },
-    // Dynamic reference to different models
+
     onModel: {
         type: String,
         enum: ['Application', 'Scholarship', 'User'],
@@ -31,15 +31,15 @@ const notificationSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for frequently queried fields
+
 notificationSchema.index({ user: 1, isRead: 1, createdAt: -1 });
 
-// Add a virtual for formatted date
+
 notificationSchema.virtual('time').get(function () {
     return this.createdAt;
 });
 
-// Ensure virtuals are included in toJSON output
+
 notificationSchema.set('toJSON', { virtuals: true });
 notificationSchema.set('toObject', { virtuals: true });
 

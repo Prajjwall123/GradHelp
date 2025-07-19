@@ -1,13 +1,6 @@
 import API from './api';
 import { getUserInfo } from './authHelper';
 
-/**
- * Create application and get payment URL
- * @param {number} amount - Amount in NPR
- * @param {string} courseId - Course ID
- * @param {string} intake - Selected intake
- * @returns {Promise<Object>} Payment initiation response
- */
 export const createApplicationAndInitiatePayment = async (amount = 1000, courseId, intake) => {
     try {
         const user = getUserInfo();
@@ -15,7 +8,7 @@ export const createApplicationAndInitiatePayment = async (amount = 1000, courseI
             throw new Error('User not authenticated');
         }
 
-        // First create application (don't wait for response)
+        
         API.post('/applications', {
             userId: user._id,
             courseId,
@@ -23,10 +16,10 @@ export const createApplicationAndInitiatePayment = async (amount = 1000, courseI
             status: 'pending'
         }).catch(error => {
             console.error('Application creation error:', error);
-            // Don't throw error here, we'll continue with payment
+            
         });
 
-        // Then initiate payment
+        
         const paymentResponse = await API.post('/payments/initiate', {
             userId: user._id,
             amount,

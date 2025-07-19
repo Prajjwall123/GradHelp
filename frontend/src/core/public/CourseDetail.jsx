@@ -24,7 +24,7 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
   ];
 
   const handleNext = () => {
-    // Validate current step before proceeding
+    
     if (currentStep === 0 && !selectedIntake) {
       toast.error('Please select an intake');
       return;
@@ -397,7 +397,7 @@ const CourseDetail = () => {
   const [appliedScholarships, setAppliedScholarships] = useState([]);
   const currentUser = getUserInfo();
 
-  // Function to handle authentication check and redirect
+  
   const handleAuthRequired = (e, action) => {
     e?.preventDefault();
     if (!isAuthenticated()) {
@@ -409,27 +409,27 @@ const CourseDetail = () => {
     return true;
   };
 
-  // Handle scholarship details click
+  
   const handleViewDetails = (e, scholarshipName) => {
     if (handleAuthRequired(e)) {
       console.log('View details for:', scholarshipName);
     }
   };
 
-  // Handle apply now click
+  
   const handleApplyNow = (e) => {
     if (handleAuthRequired(e)) {
       setShowApplicationModal(true);
     }
   };
 
-  // Handle application submission
+  
   const handleApplicationSubmit = async (applicationData) => {
     try {
-      // Create the application
+      
       await createApplication(course._id, applicationData.intake);
 
-      // Show success message
+      
       toast.success('Application created successfully!', {
         position: 'top-right',
         autoClose: 3000,
@@ -439,10 +439,10 @@ const CourseDetail = () => {
         draggable: true,
       });
 
-      // Close the modal
+      
       setShowApplicationModal(false);
 
-      // Redirect to my-applications page
+      
       navigate('/my-applications');
 
     } catch (error) {
@@ -473,9 +473,9 @@ const CourseDetail = () => {
         setIsLoading(true);
         const courseData = await getCourseById(id);
         setCourse(courseData);
-        console.log('Course data:', courseData); // Debug log
+        console.log('Course data:', courseData); 
 
-        // Fetch scholarships for the university
+        
         if (courseData.university?._id) {
           console.log('Fetching scholarships for university:', courseData.university._id);
           await fetchScholarships(courseData.university._id);
@@ -498,12 +498,12 @@ const CourseDetail = () => {
     setIsLoadingScholarships(true);
     try {
       const response = await getScholarshipsByUniversityId(universityId);
-      console.log('Scholarships response:', response); // Debug log
+      console.log('Scholarships response:', response); 
 
-      // The response is already the scholarships array
+      
       const scholarshipsData = Array.isArray(response) ? response : [];
 
-      console.log('Extracted scholarships:', scholarshipsData); // Debug log
+      console.log('Extracted scholarships:', scholarshipsData); 
       setScholarships(scholarshipsData);
     } catch (error) {
       console.error('Error fetching scholarships:', error);
@@ -556,7 +556,7 @@ const CourseDetail = () => {
     );
   }
 
-  // Format currency
+  
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
     return new Intl.NumberFormat('en-GB', {
@@ -777,7 +777,7 @@ const CourseDetail = () => {
                           if (course.university?._id) {
                             window.open(`/university/${course.university._id}`, '_blank', 'noopener,noreferrer');
                           } else {
-                            // toast.error('University information not available');
+                            
                           }
                         }}
                         className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-1 inline-flex items-center transition-colors"

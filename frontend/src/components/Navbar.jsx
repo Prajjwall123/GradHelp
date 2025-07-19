@@ -20,7 +20,7 @@ const Navbar = () => {
   const user = getUserInfo();
   const isLoggedIn = isAuthenticated();
 
-  // Fetch notifications
+  
   useEffect(() => {
     const fetchUserNotifications = async () => {
       if (isLoggedIn) {
@@ -32,7 +32,7 @@ const Navbar = () => {
     fetchUserNotifications();
   }, [isLoggedIn]);
 
-  // Close dropdown when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {

@@ -1,4 +1,4 @@
-// src/core/private/ProfileStepper.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check, User, Book, Globe, FileText, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
@@ -12,7 +12,7 @@ import EnglishTestStep from './profile-steps/EnglishTestStep';
 import { updateProfile, getProfile } from '../../utils/profileHelper';
 import { getUserInfo } from '../../utils/authHelper';
 
-// Import the profile side image
+
 import profileImage from '../../assets/profile-side-image.jpg';
 
 const steps = [
@@ -30,14 +30,14 @@ const ProfileStepper = () => {
     const navigate = useNavigate();
     const hasShownWelcome = useRef(false);
     const [formData, setFormData] = useState({
-        // Personal Info
+        
         gender: '',
         address: '',
         city: '',
         date_of_birth: '',
         first_language: '',
 
-        // Education
+        
         institution_name: '',
         field_of_study: '',
         highest_education_level: '',
@@ -46,7 +46,7 @@ const ProfileStepper = () => {
         currently_enrolled: false,
         graduation_status: false,
 
-        // Visa
+        
         visa_application_country: '',
         visa_type: '',
         application_date: '',
@@ -56,7 +56,7 @@ const ProfileStepper = () => {
         application_country: '',
         application_year: '',
 
-        // English Test
+        
         english_test: {
             test_type: '',
             reading: '',
@@ -67,15 +67,15 @@ const ProfileStepper = () => {
         },
     });
 
-    // Check if user came from login page
+    
     const isFromLogin = location.state?.fromLogin === true;
 
-    // Show welcome messages if coming from login
+    
     useEffect(() => {
         if (location.state?.fromLogin && !hasShownWelcome.current) {
             hasShownWelcome.current = true;
 
-            // Use setTimeout to ensure the toasts are shown in sequence
+            
             setTimeout(() => {
                 toast.info('Please enter your information', {
                     autoClose: 5000,
@@ -98,7 +98,7 @@ const ProfileStepper = () => {
         }
     }, [location.state]);
 
-    // Fetch profile data on component mount
+    
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -110,21 +110,21 @@ const ProfileStepper = () => {
 
                 const profile = await getProfile(user._id);
                 if (profile) {
-                    // Remove passport_number from the profile data
+                    
                     const { passport_number, ...profileWithoutPassport } = profile;
 
-                    // Map the profile data to match the form fields
+                    
                     const mappedData = {
                         ...profileWithoutPassport,
-                        // Map user info to form fields
+                        
                         fullName: profile.user?.full_name || '',
                         email: profile.user?.email || '',
-                        // Ensure nested objects are properly merged
+                        
                         date_of_birth: profile.date_of_birth ? profile.date_of_birth.split('T')[0] : '',
                         application_date: profile.application_date ? profile.application_date.split('T')[0] : '',
                         english_test: {
                             ...(profile.english_test || {}),
-                            // Ensure exam_date is properly formatted or null
+                            
                             exam_date: profile.english_test?.exam_date
                                 ? profile.english_test.exam_date.split('T')[0]
                                 : null
@@ -138,9 +138,9 @@ const ProfileStepper = () => {
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
-                // Don't show error toast for 404 - it's expected for new users
+                
                 if (error.response?.status !== 404) {
-                    // toast.error('Failed to load profile data');
+                    
                 }
             } finally {
                 setIsLoading(false);
@@ -150,7 +150,7 @@ const ProfileStepper = () => {
         fetchProfile();
     }, []);
 
-    // Save form data whenever it changes
+    
     const saveFormData = async (data) => {
         try {
             setIsSubmitting(true);
@@ -168,18 +168,18 @@ const ProfileStepper = () => {
     const handleNext = async (e) => {
         if (e) e.preventDefault();
 
-        // Save current step data before proceeding
+        
         const success = await saveFormData(formData);
         if (success) {
             if (activeStep < steps.length - 1) {
                 setActiveStep(prev => prev + 1);
             } else {
-                // If it's the last step, show success message and redirect to dashboard
+                
                 toast.success('Profile updated successfully!');
                 console.log('Profile update complete');
                 setTimeout(() => {
                     navigate('/dashboard');
-                }, 1500); // Redirect after 1.5 seconds to show the success message
+                }, 1500); 
             }
         }
     };
@@ -197,7 +197,7 @@ const ProfileStepper = () => {
         if (success) {
             toast.success('Profile updated successfully!');
             console.log('Profile update complete');
-            // Redirect to dashboard after a short delay to show the success message
+            
             setTimeout(() => {
                 navigate('/dashboard');
             }, 1500);
@@ -208,19 +208,19 @@ const ProfileStepper = () => {
         const { name, value, type, checked } = e.target;
 
         setFormData(prev => {
-            // Handle nested fields (e.g., english_test.reading)
+            
             if (name.includes('.')) {
                 const [parent, child] = name.split('.');
                 return {
                     ...prev,
                     [parent]: {
-                        ...(prev[parent] || {}), // Preserve existing nested object
+                        ...(prev[parent] || {}), 
                         [child]: type === 'checkbox' ? checked : (type === 'number' ? Number(value) : value)
                     }
                 };
             }
 
-            // Handle date fields
+            
             if (name === 'date_of_birth' || name === 'application_date' || name === 'exam_date') {
                 return {
                     ...prev,
@@ -228,7 +228,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Handle regular fields
+            
             if (type === 'checkbox') {
                 return {
                     ...prev,
@@ -236,7 +236,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Handle number fields
+            
             if (type === 'number') {
                 return {
                     ...prev,
@@ -244,7 +244,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Default case for text/select fields
+            
             return {
                 ...prev,
                 [name]: value

@@ -41,7 +41,7 @@ const ContactUs = () => {
                 theme: "light",
             });
 
-            // Reset form on successful submission
+            
             setFormData({
                 name: '',
                 email: '',

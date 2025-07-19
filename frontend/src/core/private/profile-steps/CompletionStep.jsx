@@ -1,4 +1,4 @@
-// src/core/private/profile-steps/CompletionStep.jsx
+
 import React from 'react';
 import { CheckCircle, Clock, Mail, Phone, MapPin, BookOpen, Globe, FileText, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,32 +6,32 @@ import { useNavigate } from 'react-router-dom';
 const CompletionStep = ({ formData }) => {
     const navigate = useNavigate();
 
-    // Calculate completion percentage
+    
     const calculateCompletion = () => {
         let completedFields = 0;
-        const totalFields = 20; // Adjust based on your form fields
+        const totalFields = 20; 
 
-        // Basic personal info
+        
         if (formData.fullName) completedFields += 1;
         if (formData.email) completedFields += 1;
         if (formData.phone) completedFields += 1;
         if (formData.address) completedFields += 1;
 
-        // Education
+        
         if (formData.educationLevel) completedFields += 1;
         if (formData.institution) completedFields += 1;
 
-        // Visa
+        
         if (formData.visaStatus) completedFields += 1;
 
-        // English test
+        
         if (formData.englishTest?.testType) completedFields += 1;
 
-        // Documents
+        
         if (formData.documents?.passport) completedFields += 1;
         if (formData.documents?.academicTranscripts) completedFields += 1;
 
-        // Add more fields as needed
+        
 
         return Math.round((completedFields / totalFields) * 100);
     };

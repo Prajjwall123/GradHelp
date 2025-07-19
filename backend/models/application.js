@@ -25,11 +25,11 @@ const ApplicationSchema = new mongoose.Schema({
         default: 'pending'
     },
     acceptanceLetter: {
-        type: String, // Path to the uploaded PDF file
+        type: String,
         default: null
     },
     rejectionLetter: {
-        type: String, // Path to the uploaded PDF file
+        type: String,
         default: null
     },
     acceptedAt: {
@@ -50,7 +50,7 @@ const ApplicationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Compound index to ensure one application per profile per course
+
 ApplicationSchema.index({ profile: 1, course: 1 }, { unique: true });
 
 module.exports = mongoose.model('Application', ApplicationSchema);

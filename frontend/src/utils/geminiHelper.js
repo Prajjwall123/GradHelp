@@ -1,12 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Get API key from environment variables
+
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 if (!apiKey) {
     throw new Error('VITE_GEMINI_API_KEY is not defined in environment variables');
 }
 
-// Initialize the Google Generative AI client
+
 let genAI;
 try {
     genAI = new GoogleGenerativeAI(apiKey);
@@ -15,7 +15,7 @@ try {
     throw new Error('Failed to initialize AI service');
 }
 
-// Common configuration for Gemini Flash
+
 const getModelConfig = () => ({
     model: 'gemini-1.5-flash',
     generationConfig: {
@@ -31,12 +31,7 @@ const getModelConfig = () => ({
     ],
 });
 
-/**
- * Generates SOP suggestions using Gemini Flash
- * @param {string} prompt - The user's prompt
- * @param {string} currentSOP - The current SOP content for context
- * @returns {Promise<{data: string, error: string|null, updatedEssay: string|null}>} - The response, error (if any), and updated essay content
- */
+
 export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
     if (!prompt || typeof prompt !== 'string') {
         const error = 'Error: Please provide a valid prompt. The prompt must be a non-empty string.';
@@ -47,7 +42,7 @@ export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
     try {
         const model = genAI.getGenerativeModel(getModelConfig());
 
-        // Enhanced system message to guide the AI
+        
         const systemMessage = {
             role: 'user',
             parts: [{
@@ -79,11 +74,11 @@ export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
             history: [systemMessage],
             generationConfig: {
                 temperature: 0.7,
-                response_mime_type: 'application/json', // Request JSON response
+                response_mime_type: 'application/json', 
             },
         });
 
-        // Send the user's prompt
+        
         const result = await chat.sendMessage(prompt);
         const response = await result.response;
         let responseText = response.text();
@@ -91,21 +86,21 @@ export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
         console.log('Raw AI Response:', responseText);
 
         try {
-            // Clean the response text to ensure it's valid JSON
+            
             responseText = responseText.trim();
 
-            // Remove markdown code block markers if present
+            
             if (responseText.startsWith('```json')) {
                 responseText = responseText.slice(responseText.indexOf('{'), responseText.lastIndexOf('}') + 1);
             }
 
-            // Parse the response
+            
             const responseData = JSON.parse(responseText);
 
-            // Log the parsed response for debugging
+            
             console.log('Parsed Response:', responseData);
 
-            // Return the response in the expected format
+            
             return {
                 data: responseData.message || 'I\'ve updated your SOP with the requested changes.',
                 error: null,
@@ -113,7 +108,7 @@ export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
             };
         } catch (e) {
             console.error('Error parsing AI response:', e);
-            // If parsing as JSON fails, return the response as a message
+            
             return {
                 data: responseText,
                 error: null,
@@ -138,11 +133,7 @@ export const generateSOPSuggestion = async (prompt, currentSOP = '') => {
     }
 };
 
-/**
- * Analyzes the provided SOP text and provides comprehensive feedback using Gemini Flash
- * @param {string} sopText - The SOP text to analyze
- * @returns {Promise<{data: string|null, error: string|null}>} - The analysis and error (if any)
- */
+
 export const analyzeSOP = async (sopText) => {
     if (!sopText || typeof sopText !== 'string' || sopText.trim().length < 50) {
         const error = 'Error: Please provide a valid SOP with at least 50 characters for analysis.';

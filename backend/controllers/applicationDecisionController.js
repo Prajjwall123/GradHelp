@@ -3,7 +3,7 @@ const Notification = require('../models/notification');
 const fs = require('fs');
 const path = require('path');
 
-// Helper function to save file and return its path
+
 const saveFile = (file, applicationId, type) => {
     if (!file) return null;
 
@@ -15,17 +15,17 @@ const saveFile = (file, applicationId, type) => {
     const filename = `${type}_${applicationId}_${Date.now()}${path.extname(file.originalname)}`;
     const filePath = path.join(uploadDir, filename);
 
-    // Ensure the file is written as a buffer
+
     fs.writeFileSync(filePath, file.buffer);
     return `/uploads/letters/${filename}`;
 };
 
-// Accept an application
+
 const acceptApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
         const { message } = req.body;
-        const acceptanceLetter = req.file; // Changed from req.files to req.file
+        const acceptanceLetter = req.file;
 
         console.log('Accepting application:', { applicationId, message, file: req.file });
 
@@ -37,7 +37,7 @@ const acceptApplication = async (req, res) => {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // Save acceptance letter if provided
+
         let letterPath = null;
         if (acceptanceLetter) {
             console.log('Processing acceptance letter:', acceptanceLetter);
@@ -45,13 +45,13 @@ const acceptApplication = async (req, res) => {
             console.log('Letter saved at:', letterPath);
         }
 
-        // Update application status and save letter path
+
         application.status = 'accepted';
         application.acceptanceLetter = letterPath;
         application.acceptedAt = new Date();
         await application.save();
 
-        // Create notification
+
         await Notification.create({
             user: application.profile.user,
             message: message || `Congratulations! Your application for ${application.course.name} has been accepted.`,
@@ -59,7 +59,7 @@ const acceptApplication = async (req, res) => {
             onModel: 'Application'
         });
 
-        // Populate the updated application for the response
+
         const updatedApp = await Application.findById(applicationId)
             .populate('profile')
             .populate('course');
@@ -79,12 +79,12 @@ const acceptApplication = async (req, res) => {
     }
 };
 
-// Reject an application
+
 const rejectApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
         const { message } = req.body;
-        const rejectionLetter = req.file; // Changed from req.files to req.file
+        const rejectionLetter = req.file;
 
         console.log('Rejecting application:', { applicationId, message, file: req.file });
 
@@ -96,7 +96,7 @@ const rejectApplication = async (req, res) => {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // Save rejection letter if provided
+
         let letterPath = null;
         if (rejectionLetter) {
             console.log('Processing rejection letter:', rejectionLetter);
@@ -104,13 +104,13 @@ const rejectApplication = async (req, res) => {
             console.log('Letter saved at:', letterPath);
         }
 
-        // Update application status and save letter path
+
         application.status = 'rejected';
         application.rejectionLetter = letterPath;
         application.rejectedAt = new Date();
         await application.save();
 
-        // Create notification
+
         await Notification.create({
             user: application.profile.user,
             message: message || `We regret to inform you that your application for ${application.course.name} has been rejected.`,
@@ -118,7 +118,7 @@ const rejectApplication = async (req, res) => {
             onModel: 'Application'
         });
 
-        // Populate the updated application for the response
+
         const updatedApp = await Application.findById(applicationId)
             .populate('profile')
             .populate('course');

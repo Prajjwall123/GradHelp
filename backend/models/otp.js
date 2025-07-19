@@ -14,16 +14,16 @@ const OTPSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-// Index for faster queries
-OTPSchema.index({ email: 1, purpose: 1 });
-OTPSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired OTPs
 
-// Generate OTP for password reset
+OTPSchema.index({ email: 1, purpose: 1 });
+OTPSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+
 OTPSchema.statics.generatePasswordResetOTP = async function (email) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Remove any existing password reset OTPs for this email
+
     await this.deleteMany({ email, purpose: 'password_reset' });
 
     return this.create({
@@ -34,7 +34,7 @@ OTPSchema.statics.generatePasswordResetOTP = async function (email) {
     });
 };
 
-// Verify password reset OTP
+
 OTPSchema.statics.verifyPasswordResetOTP = async function (email, otp) {
     const otpRecord = await this.findOneAndDelete({
         email,

@@ -5,21 +5,21 @@ const path = require('path');
 const fs = require('fs');
 const { getProfile, updateProfile } = require('../controllers/profileController');
 
-// Create uploads/transcripts directories if they don't exist
+
 const baseUploadsDir = path.join(__dirname, '../uploads');
 const transcriptsDir = path.join(baseUploadsDir, 'transcripts');
 
-// Ensure directories exist
+
 [baseUploadsDir, transcriptsDir].forEach(dir => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 });
 
-// Configure multer for file uploads
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        // Create a subdirectory for each transcript type
+
         const dest = path.join(transcriptsDir, file.fieldname);
         if (!fs.existsSync(dest)) {
             fs.mkdirSync(dest, { recursive: true });
@@ -46,8 +46,8 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB limit per file
-        files: 2 // Maximum of 2 files (one for each transcript type)
+        fileSize: 10 * 1024 * 1024,
+        files: 2
     },
     fileFilter: fileFilter
 }).fields([
@@ -55,7 +55,7 @@ const upload = multer({
     { name: 'english_transcript', maxCount: 1 }
 ]);
 
-// Handle file upload errors
+
 const handleUploadErrors = (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         return res.status(400).json({ message: err.message });
@@ -65,7 +65,7 @@ const handleUploadErrors = (err, req, res, next) => {
     next();
 };
 
-// Routes
+
 router.get('/:userId', getProfile);
 router.patch('/:userId', upload, handleUploadErrors, updateProfile);
 

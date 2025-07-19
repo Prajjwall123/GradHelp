@@ -6,7 +6,7 @@ const {
     rejectScholarshipApplication
 } = require('../controllers/scholarshipDecisionController');
 
-// Configure multer for file uploads
+
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -20,15 +20,15 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
+        fileSize: 5 * 1024 * 1024,
     },
     fileFilter: fileFilter
 });
 
-// Accept a scholarship application (with optional acceptance letter)
+
 router.post(
     '/:scholarshipAppId/accept',
-    upload.single('file'),  // 'file' is the field name in the form data
+    upload.single('file'),
     (req, res, next) => {
         console.log('File upload middleware:', {
             file: req.file ? 'File received' : 'No file received',
@@ -40,14 +40,14 @@ router.post(
     acceptScholarshipApplication
 );
 
-// Reject a scholarship application (with optional rejection letter)
+
 router.post(
     '/:scholarshipAppId/reject',
     upload.single('file'),
     rejectScholarshipApplication
 );
 
-// Error handling middleware for multer
+
 router.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         return res.status(400).json({

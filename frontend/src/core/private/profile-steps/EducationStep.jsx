@@ -1,4 +1,4 @@
-// src/core/private/profile-steps/EducationStep.jsx
+
 import React, { useState } from 'react';
 import { GraduationCap, BookOpen, Award, FileText, Upload } from 'lucide-react';
 
@@ -9,7 +9,7 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file type
+        
         const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         const fileType = file.type;
 
@@ -18,7 +18,7 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
             return;
         }
 
-        // Validate file size (10MB)
+        
         if (file.size > 10 * 1024 * 1024) {
             setFileError('File size should not exceed 10MB');
             return;
@@ -26,7 +26,7 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
 
         setFileError('');
 
-        // Update form data with the file
+        
         setFormData(prev => ({
             ...prev,
             education_transcript: file

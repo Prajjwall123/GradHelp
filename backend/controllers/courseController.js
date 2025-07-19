@@ -9,9 +9,9 @@ const getAllCourses = async (req, res) => {
                 path: 'university',
                 select: 'university_name city country university_photo'
             })
-            .lean(); // Convert to plain JavaScript object
+            .lean();
 
-        // Format the response to include university details at the root level
+
         const formattedCourses = courses.map(course => {
             const { university, ...courseData } = course;
             return {
@@ -42,13 +42,13 @@ const getCourseById = async (req, res) => {
                 path: 'university',
                 select: 'university_name city country university_photo'
             })
-            .lean(); // Convert to plain JavaScript object
+            .lean();
 
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
 
-        // Format the response to include university details at the root level
+
         const { university, ...courseData } = course;
         const formattedCourse = {
             ...courseData,

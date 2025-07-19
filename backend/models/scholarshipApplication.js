@@ -48,10 +48,10 @@ const scholarshipApplicationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Prevent duplicate applications
+
 scholarshipApplicationSchema.index({ user: 1, scholarship: 1 }, { unique: true });
 
-// Add a method to check if the application is eligible for scholarship
+
 scholarshipApplicationSchema.methods.isEligibleForScholarship = async function () {
     const application = await mongoose.model('Application').findById(this.application);
     return application && application.status !== 'rejected';

@@ -28,7 +28,7 @@ const SOPWriter = () => {
     const location = useLocation();
     const isInitialMount = useRef(true);
 
-    // Initialize with data from route state
+    
     useEffect(() => {
         if (location.state?.course && location.state?.university) {
             console.log('University data:', location.state.university);
@@ -45,19 +45,19 @@ const SOPWriter = () => {
         }
     }, [location.state]);
 
-    // Handle content updates with typewriter effect
+    
     const handleContentUpdate = useCallback((newContent) => {
         if (!newContent || newContent === content) return;
 
-        // Store scroll position
+        
         const editor = editorRef.current;
         const scrollTop = editor?.scrollTop || 0;
 
-        // Update content
+        
         setContent(newContent);
         setIsUpdatingEssay(true);
 
-        // Restore scroll position after update
+        
         requestAnimationFrame(() => {
             if (editor) {
                 editor.scrollTop = scrollTop;
@@ -80,16 +80,16 @@ const SOPWriter = () => {
 
     const handleConfirmSubmit = async () => {
         try {
-            // Get application ID from location state
+            
             const applicationId = location.state?.applicationId;
             if (!applicationId) {
                 throw new Error('No application ID found');
             }
 
-            // Update SOP in the backend
+            
             await updateApplicationSOP(applicationId, content);
 
-            // Show success toast
+            
             toast.success('SOP updated successfully!', {
                 position: "top-right",
                 autoClose: 3000,
@@ -100,10 +100,10 @@ const SOPWriter = () => {
                 progress: undefined,
             });
 
-            // Close the modal
+            
             setShowConfirmModal(false);
 
-            // Navigate back to applications page after a short delay
+            
             setTimeout(() => {
                 navigate('/my-applications');
             }, 1500);
@@ -118,18 +118,18 @@ const SOPWriter = () => {
         setShowConfirmModal(false);
     };
 
-    // Handle messages from the chatbot
+    
     const handleBotMessage = useCallback((message) => {
         if (message.updatedEssay) {
             handleContentUpdate(message.updatedEssay);
         }
     }, [handleContentUpdate]);
 
-    // Word and character count
+    
     const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
     const characterCount = content.length;
 
-    // Initial message for the chatbot
+    
     const initialMessages = [{
         id: 1,
         role: 'assistant',

@@ -6,7 +6,7 @@ const getApplicationsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Find the profile for the given user and populate the user details
+
         const profile = await Profile.findOne({ user: userId })
             .populate('user', 'full_name email');
 
@@ -14,7 +14,7 @@ const getApplicationsByUser = async (req, res) => {
             return res.status(404).json({ message: "Profile not found for this user" });
         }
 
-        // Find all applications for this profile
+
         const applications = await Application.find({ profile: profile._id })
             .populate({
                 path: 'course',
@@ -25,15 +25,15 @@ const getApplicationsByUser = async (req, res) => {
             })
             .sort({ appliedAt: -1 });
 
-        // Convert profile to a plain object and remove sensitive data if needed
+
         const profileData = profile.toObject();
 
-        // Add profile data to each application
+
         const applicationsWithProfile = applications.map(app => ({
             ...app.toObject(),
             profile: {
                 ...profileData,
-                // Ensure we don't expose sensitive data
+
                 user: {
                     _id: profileData.user._id,
                     full_name: profileData.user.full_name,
@@ -52,20 +52,20 @@ const createApplication = async (req, res) => {
     try {
         const { userId, courseId, intake } = req.body;
 
-        // Find the profile for the given user
+
         const profile = await Profile.findOne({ user: userId });
 
         if (!profile) {
             return res.status(404).json({ message: "Profile not found for this user" });
         }
 
-        // Check if course exists
+
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
 
-        // Check if application already exists
+
         const existingApplication = await Application.findOne({
             profile: profile._id,
             course: courseId
@@ -76,7 +76,7 @@ const createApplication = async (req, res) => {
         }
 
         const application = new Application({
-            profile: profile._id,  // Store the profile ID in the model
+            profile: profile._id,
             course: courseId,
             intake,
             status: 'pending'
@@ -153,7 +153,7 @@ const deleteApplication = async (req, res) => {
     }
 };
 
-// Update SOP for an application
+
 const updateApplicationSOP = async (req, res) => {
     try {
         const { applicationId } = req.params;
@@ -173,13 +173,13 @@ const updateApplicationSOP = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-        // Check if the user making the request owns this application
+
         const profile = await Profile.findOne({ user: userId });
         if (!profile || !application.profile.equals(profile._id)) {
             return res.status(403).json({ message: "Not authorized to update this application" });
         }
 
-        // Update the SOP and set the status to under_review
+
         application.sop = sop;
         application.status = 'under_review';
         application.updatedAt = Date.now();

@@ -1,6 +1,6 @@
 const Notification = require('../models/notification');
 
-// Create a new notification
+
 const createNotification = async (req, res) => {
     try {
         const { user, message, relatedEntity, onModel } = req.body;
@@ -9,7 +9,7 @@ const createNotification = async (req, res) => {
             return res.status(400).json({ message: 'User ID and message are required' });
         }
 
-        // Validate onModel if relatedEntity is provided
+
         if (relatedEntity && !onModel) {
             return res.status(400).json({ message: 'onModel is required when relatedEntity is provided' });
         }
@@ -33,7 +33,7 @@ const createNotification = async (req, res) => {
     }
 };
 
-// Get all notifications for a user
+
 const getUserNotifications = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -49,7 +49,7 @@ const getUserNotifications = async (req, res) => {
     }
 };
 
-// Get a single notification by ID
+
 const getNotificationById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -66,7 +66,7 @@ const getNotificationById = async (req, res) => {
     }
 };
 
-// Mark notification as read
+
 const markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
@@ -90,7 +90,7 @@ const markAsRead = async (req, res) => {
     }
 };
 
-// Delete a notification
+
 const deleteNotification = async (req, res) => {
     try {
         const { id } = req.params;
@@ -107,7 +107,7 @@ const deleteNotification = async (req, res) => {
     }
 };
 
-// Mark all notifications as read for a user
+
 const markAllAsRead = async (req, res) => {
     try {
         const { userId } = req.params;

@@ -32,7 +32,7 @@ const getScholarshipsByUniversityId = async (universityId) => {
         console.log(`Fetching scholarships for university ID: ${universityId}`);
         const response = await API.get(`/scholarships/university/${universityId}`);
         console.log('Scholarships API response:', response);
-        // The response is an object with a scholarships array
+        
         return Array.isArray(response.data?.scholarships) ? response.data.scholarships : [];
     } catch (error) {
         console.error(`Error fetching scholarships for university ${universityId}:`, {

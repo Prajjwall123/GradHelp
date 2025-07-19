@@ -12,14 +12,14 @@ const PaymentCallback = () => {
     useEffect(() => {
         const handlePayment = async () => {
             try {
-                // Show success message and redirect
+                
                 toast.success('Payment processed successfully!');
                 setTimeout(() => {
-                    // Clean up localStorage
+                    
                     localStorage.removeItem('application_course_id');
                     localStorage.removeItem('application_intake');
 
-                    // Redirect to applications page
+                    
                     navigate('/my-applications');
                 }, 2000);
             } catch (error) {
@@ -52,7 +52,7 @@ const PaymentCallback = () => {
                     <p className="mt-2 text-gray-600">{error}</p>
                     <button
                         onClick={() => {
-                            // Clean up localStorage on error
+                            
                             localStorage.removeItem('application_course_id');
                             localStorage.removeItem('application_intake');
                             navigate('/dashboard');

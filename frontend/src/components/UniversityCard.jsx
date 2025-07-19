@@ -2,22 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { RefreshCw, FileText } from "lucide-react";
 
-/**
- * UniversityCard component
- * @param {Object} props
- * @param {string} props.logo - University logo image path
- * @param {string} props.university - University name
- * @param {string} props.level - Program level (e.g., Postgraduate Certificate)
- * @param {string} props.program - Program name
- * @param {string} props.location - Location (e.g., Coventry, ENG)
- * @param {string|number} props.tuition - Tuition fee (e.g., "$13,640")
- * @param {string|number} props.applicationFee - Application fee (e.g., "$125")
- * @param {string} props.duration - Duration (e.g., "24 months")
- * @param {string} [props.viewMode='grid'] - Display mode: 'grid' or 'list'
- * @param {function} [props.onCompare] - Optional Compare button handler
- * @param {string|number} props.id - Course ID for redirection
- * @param {string|number} props.courseId - Course ID (alternative to id)
- */
+
 const UniversityCard = ({
   id,
   courseId,

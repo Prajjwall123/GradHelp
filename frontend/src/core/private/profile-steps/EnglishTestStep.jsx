@@ -1,4 +1,4 @@
-// src/core/private/profile-steps/EnglishTestStep.jsx
+
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Calendar, FileText, Upload } from 'lucide-react';
 
@@ -38,7 +38,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file type
+        
         const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         const fileType = file.type;
 
@@ -47,7 +47,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
             return;
         }
 
-        // Validate file size (10MB)
+        
         if (file.size > 10 * 1024 * 1024) {
             setFileError('File size should not exceed 10MB');
             return;
@@ -55,14 +55,14 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
 
         setFileError('');
 
-        // Update form data with the file directly at the root level
+        
         setFormData(prev => ({
             ...prev,
             english_test: {
                 ...prev.english_test,
-                // Keep other english_test fields
+                
             },
-            english_transcript: file  // Add file at root level
+            english_transcript: file  
         }));
     };
 
@@ -77,7 +77,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         };
         setScores(newScores);
 
-        // Update the form data with the new score
+        
         handleChange({
             target: {
                 name: `english_test.${section}`,
@@ -124,7 +124,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
 
         setDateError('');
 
-        // Update the form data
+        
         setFormData(prev => ({
             ...prev,
             english_test: {

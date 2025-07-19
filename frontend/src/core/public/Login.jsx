@@ -14,13 +14,13 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    // Get redirect path from URL query parameters and check if coming from verify
+    
     const searchParams = new URLSearchParams(location.search);
     const redirectPath = searchParams.get('redirect');
     const fromVerify = location.state?.fromVerify;
     const verifyEmail = location.state?.email || '';
 
-    // Pre-fill email if coming from verify
+    
     useEffect(() => {
         if (verifyEmail) {
             setForm(prev => ({ ...prev, email: verifyEmail }));
@@ -39,10 +39,10 @@ const Login = () => {
             const { isNewUser } = await loginUser({ email: form.email, password: form.password });
             toast.success("Login successful!");
 
-            // Redirect based on the following priority:
-            // 1. Redirect path from URL (if any)
-            // 2. To profile if coming from verify or if it's a new user
-            // 3. To home page as fallback
+            
+            
+            
+            
             if (redirectPath) {
                 navigate(redirectPath);
             } else if (fromVerify || isNewUser) {
@@ -53,7 +53,7 @@ const Login = () => {
         } catch (err) {
             console.error('Login error:', err);
 
-            // Handle rate limit error specifically
+            
             if (err.status === 429) {
                 toast.error(err.response?.data?.message || "Too many login attempts. Please try again later.", {
                     position: "top-right",
@@ -64,7 +64,7 @@ const Login = () => {
                     draggable: true,
                 });
             } else {
-                // For other errors, show the error message from the server or a generic message
+                
                 toast.error(err.message || "Login failed. Please try again.", {
                     position: "top-right",
                     autoClose: 5000,

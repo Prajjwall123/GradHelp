@@ -14,11 +14,11 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     const synthRef = useRef(window.speechSynthesis);
     const chatEndRef = useRef(null);
 
-    // Initialize Gemini
+    
     const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    // Update system message when currentSOP changes
+    
     const systemMessage = {
         role: 'system',
         content: `You are an AI assistant helping with Statement of Purpose (SOP) writing. 
@@ -36,7 +36,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         5. If the user asks about the SOP, refer to the content provided above`
     };
 
-    // Initialize speech recognition
+    
     useEffect(() => {
         if ('webkitSpeechRecognition' in window) {
             recognitionRef.current = new window.webkitSpeechRecognition();
@@ -48,10 +48,10 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
                 const transcript = event.results[0][0].transcript;
                 console.log('Voice input:', transcript);
 
-                // Create a full prompt that includes the current SOP
+                
                 const voicePrompt = `Current SOP: ${currentSOP}\n\nUser request: ${transcript}`;
 
-                // Process the voice input with the full context
+                
                 handleSendMessage(voicePrompt);
             };
 
@@ -121,7 +121,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     };
 
     const MAX_RETRIES = 3;
-    const RETRY_DELAY = 2000; // 2 seconds
+    const RETRY_DELAY = 2000; 
 
     const callGeminiWithRetry = async (message, retryCount = 0) => {
         try {
@@ -170,10 +170,10 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     const handleSendMessage = async (message = input) => {
         if (!message.trim()) return;
 
-        // Check if this is a voice message with SOP context
+        
         const isVoiceWithSOP = message.includes('Current SOP:');
 
-        // Extract just the user's message part for display
+        
         const displayMessage = isVoiceWithSOP
             ? message.split('User request:')[1]?.trim() || message
             : message;
@@ -181,7 +181,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         const userMessage = {
             id: Date.now(),
             role: 'user',
-            content: displayMessage, // Store only the user's message for display
+            content: displayMessage, 
             timestamp: new Date()
         };
 
@@ -192,21 +192,21 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         try {
             console.log('Sending message to Gemini...');
 
-            // Use the full message (with SOP context) for the API call
+            
             const apiMessage = isVoiceWithSOP ? message : `Current SOP: ${currentSOP}\n\nUser request: ${message}`;
             const text = await callGeminiWithRetry(apiMessage);
             console.log('Response received from Gemini');
 
-            // Parse the response
+            
             let messageContent = text;
             let updatedEssay = null;
 
-            // Try to extract updated SOP from markdown code blocks
+            
             const essayMatch = text.match(/```(?:markdown)?\n([\s\S]*?)\n```/);
 
             if (essayMatch && essayMatch[1]) {
                 updatedEssay = essayMatch[1].trim();
-                // Remove the code block from the displayed message
+                
                 messageContent = text.replace(/```[\s\S]*?```/g, '').trim() ||
                     'I\'ve updated your SOP with the requested changes.';
                 console.log('Found and extracted updated SOP');
@@ -254,7 +254,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         handleSendMessage();
     };
 
-    // Auto-scroll to bottom of messages
+    
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);

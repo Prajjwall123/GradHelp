@@ -83,7 +83,7 @@ const deleteUniversity = async (req, res) => {
             return res.status(404).json({ message: "University not found" });
         }
 
-        // Delete the associated image
+
         if (university.university_photo) {
             const filePath = path.join(__dirname, '../images', university.university_photo);
             if (fs.existsSync(filePath)) {

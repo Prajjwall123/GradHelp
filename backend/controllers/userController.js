@@ -6,30 +6,30 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendOTPEmail } = require("../utils/email");
 
-// Generate OTP
+
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 
-// Register user - creates OTP
+
 const register = async (req, res) => {
     try {
         const { fullName, email, password } = req.body;
-        // Check if user already exists
+
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        // Hash password
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Generate OTP
+
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-        // Create OTP entry
+
         const otpEntry = new OTP({
             full_name: fullName,
             email,
@@ -38,13 +38,13 @@ const register = async (req, res) => {
             expiresAt
         });
 
-        // Save OTP entry first
+
         await otpEntry.save();
 
-        // Send OTP via email
+
         const emailSent = await sendOTPEmail(email, otp);
         if (!emailSent) {
-            // If email sending fails, delete the OTP entry
+
             await OTP.deleteOne({ _id: otpEntry._id });
             return res.status(500).json({ message: "Failed to send OTP email" });
         }
@@ -72,7 +72,7 @@ const verifyOTP = async (req, res) => {
             return res.status(400).json({ message: "OTP has expired" });
         }
 
-        // Create user
+
         const user = new User({
             full_name: otpEntry.full_name,
             email: otpEntry.email,
@@ -83,7 +83,7 @@ const verifyOTP = async (req, res) => {
 
         try {
             console.log('Creating profile for user:', user._id);
-            // Create profile with only the required fields
+
             const profileData = {
                 user: user._id,
                 full_name: user.full_name,
@@ -95,7 +95,7 @@ const verifyOTP = async (req, res) => {
             console.log('Profile created successfully:', profile._id);
         } catch (profileError) {
             console.error('Error creating profile:', profileError);
-            // If profile creation fails, delete the user to maintain data consistency
+
             await User.deleteOne({ _id: user._id });
             throw new Error('Failed to create user profile');
         }
@@ -113,24 +113,24 @@ const verifyOTP = async (req, res) => {
 };
 
 
-// Login user
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Find user
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        // Check password
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        // Generate JWT token
+
         const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET || "your-secret-key",
@@ -151,7 +151,7 @@ const login = async (req, res) => {
     }
 };
 
-// Update user
+
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -174,7 +174,7 @@ const updateUser = async (req, res) => {
     }
 };
 
-// Delete user
+
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;

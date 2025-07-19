@@ -22,7 +22,7 @@ const Typewriter = ({ text, speed = 10, onComplete, className = '' }) => {
         };
     }, [text, currentIndex, speed, onComplete]);
 
-    // Reset animation when text changes
+    
     useEffect(() => {
         setDisplayedText('');
         setCurrentIndex(0);

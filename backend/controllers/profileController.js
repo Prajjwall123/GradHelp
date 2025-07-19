@@ -2,7 +2,7 @@ const Profile = require("../models/profile");
 const fs = require('fs');
 const path = require('path');
 
-// Helper function to handle file cleanup
+
 const cleanupOldFile = async (userId, fieldName) => {
     const existingProfile = await Profile.findOne({ user: userId });
     if (existingProfile?.[fieldName]) {
@@ -44,13 +44,13 @@ const updateProfile = async (req, res) => {
         const { userId } = req.params;
         const updates = req.body;
 
-        // Handle education transcript upload if present
+
         if (req.files?.education_transcript) {
             await cleanupOldFile(userId, 'education_transcript');
             updates.education_transcript = req.files.education_transcript[0].filename;
         }
 
-        // Handle English transcript upload if present
+
         if (req.files?.english_transcript) {
             await cleanupOldFile(userId, 'english_transcript');
             updates.english_transcript = req.files.english_transcript[0].filename;
@@ -68,7 +68,7 @@ const updateProfile = async (req, res) => {
 
         res.json(profile);
     } catch (error) {
-        // Clean up uploaded files if there was an error
+
         if (req.files) {
             Object.values(req.files).forEach(fileArray => {
                 fileArray.forEach(file => {

@@ -12,7 +12,7 @@ const NotificationsModal = ({ isOpen, onClose, notifications, unreadCount }) => 
         }
         onClose();
 
-        // Navigate based on notification type
+        
         if (notification.onModel === 'Application') {
             navigate(`/my-applications/${notification.relatedEntity._id}`);
         }
