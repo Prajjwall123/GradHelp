@@ -51,7 +51,29 @@ const Login = () => {
                 navigate("/");
             }
         } catch (err) {
-            toast.error(err?.response?.data?.message || "Login failed. Please try again.");
+            console.error('Login error:', err);
+
+            // Handle rate limit error specifically
+            if (err.status === 429) {
+                toast.error(err.response?.data?.message || "Too many login attempts. Please try again later.", {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            } else {
+                // For other errors, show the error message from the server or a generic message
+                toast.error(err.message || "Login failed. Please try again.", {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            }
         } finally {
             setLoading(false);
         }

@@ -38,7 +38,6 @@ const ContactUs = () => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "light",
             });
 
@@ -51,14 +50,18 @@ const ContactUs = () => {
             });
         } catch (error) {
             console.error('Error submitting form:', error);
-            toast.error(error.message || 'Failed to send message. Please try again later.', {
+
+            const errorMessage = error.status === 429
+                ? 'Too many requests from this IP, please try again later'
+                : error.message || 'Failed to send message. Please try again later.';
+
+            toast.error(errorMessage, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "light",
             });
         } finally {

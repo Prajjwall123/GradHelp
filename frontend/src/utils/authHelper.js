@@ -69,7 +69,11 @@ const loginUser = async (credentials) => {
             isNewUser
         };
     } catch (error) {
-        throw error.response ? error.response.data : { message: "Network error" };
+        // Include the status code in the error object
+        const errorWithStatus = new Error(error.response?.data?.message || "Network error");
+        errorWithStatus.status = error.response?.status;
+        errorWithStatus.response = error.response;
+        throw errorWithStatus;
     }
 };
 
