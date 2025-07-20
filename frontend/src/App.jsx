@@ -23,7 +23,6 @@ const SOPWriter = lazy(() => import("./core/public/SOPWriter"));
 const Applications = lazy(() => import("./core/private/Applications"));
 const AboutUs = lazy(() => import("./core/public/AboutUs"));
 const ContactUs = lazy(() => import("./core/public/ContactUs"));
-const MockVisaInterview = lazy(() => import("./core/public/MockVisaInterview"));
 const CostOfLivingCalculator = lazy(() => import("./core/public/CostOfLivingCalculator"));
 const Help = lazy(() => import("./core/public/Help"));
 
@@ -48,7 +47,6 @@ function App() {
     { path: "/about", element: <Suspense fallback={<div>Loading...</div>}><AboutUs /></Suspense> },
     { path: "/contact", element: <Suspense fallback={<div>Loading...</div>}><ContactUs /></Suspense> },
     { path: "/help", element: <Suspense fallback={<div>Loading...</div>}><Help /></Suspense> },
-    { path: "/mock-visa-interview", element: <Suspense fallback={<div>Loading...</div>}><MockVisaInterview /></Suspense> },
     { path: "/cost-of-living-calculator", element: <Suspense fallback={<div>Loading...</div>}><CostOfLivingCalculator /></Suspense> },
   ];
 

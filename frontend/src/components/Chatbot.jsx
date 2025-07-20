@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, MicOff, Volume2, VolumeX, X, MessageSquare } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Send, X, MessageSquare } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import API from '../utils/api';
+import { getToken } from '../utils/authHelper';
 
 const Chatbot = ({ onClose }) => {
     const location = useLocation();
@@ -15,21 +16,15 @@ const Chatbot = ({ onClose }) => {
         }
     ]);
     const [input, setInput] = useState('');
-    const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(true);
-    const recognitionRef = useRef(null);
-    const synthRef = useRef(window.speechSynthesis);
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
 
-    
     const getContext = useCallback(() => {
         const path = location.pathname;
         const searchParams = new URLSearchParams(location.search);
 
-        
-        const userFlowContext = `
+        return `
         You are a helpful assistant for a study abroad platform. Here's how the platform works:
         
         1. User Registration & Verification:
@@ -48,136 +43,31 @@ const Chatbot = ({ onClose }) => {
         3. Application Process:
            - Browse universities at /university
            - Explore programs at /programs
-           - Click 'Apply' on desired program
-           - Choose intake period
-           - Review entry requirements
-           - Agree to terms and conditions
+           - View detailed program information
+           - Submit applications
         
-        4. SOP & Submission:
-           - After application creation, go to /my-applications
-           - Use the AI SOP Writer tool to create/update Statement of Purpose
-           - Submit the application with the SOP
-           - Track application status
-           - Receive notifications about acceptance/decisions
+        4. Application Tracking:
+           - View application status
+           - Upload required documents
+           - Check admission decisions
         
-        Important Notes:
-        - Profile completion is mandatory before applying
-        - Each application requires a unique SOP
-        - Users can track all applications in one place
-        - Support is available for any step in the process
+        Current page: ${path}
+        Query parameters: ${searchParams.toString()}
         `;
-
-        
-        let pageContext = '';
-        if (path.includes('/university')) {
-            pageContext = 'The user is browsing universities. Help them find the right university based on their preferences, or explain how to compare different institutions.';
-        } else if (path.includes('/programs')) {
-            pageContext = 'The user is exploring study programs. Help them understand program requirements, duration, fees, or how to find programs that match their profile.';
-        } else if (path.includes('/profile')) {
-            pageContext = 'The user is managing their profile. Help them complete required information, update details, or understand why certain information is needed for applications.';
-        } else if (path.includes('/my-applications')) {
-            pageContext = 'The user is viewing their applications. Help them track status, submit missing documents, or understand next steps in the application process.';
-        } else if (path.includes('/sop-writer')) {
-            pageContext = 'The user is using the SOP Writer tool. Help them craft a strong Statement of Purpose, provide writing tips, or explain how to highlight their qualifications.';
-        } else if (path.includes('/apply/')) {
-            pageContext = 'The user is in the application process. Guide them through selecting an intake, understanding requirements, or completing the application form.';
-        } else if (path.includes('/auth')) {
-            pageContext = 'The user is in the authentication section. Help them with login, registration, or account recovery processes.';
-        }
-
-        return userFlowContext + '\n\n' + pageContext;
     }, [location]);
 
-    
-    const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    
     useEffect(() => {
-        if ('webkitSpeechRecognition' in window) {
-            recognitionRef.current = new window.webkitSpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.interimResults = false;
-            recognitionRef.current.lang = 'en-US';
+        scrollToBottom();
+    }, [messages]);
 
-            recognitionRef.current.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                setInput(transcript);
-                handleSendMessage(transcript);
-            };
-
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error', event.error);
-                setIsListening(false);
-            };
-
-            recognitionRef.current.onend = () => {
-                if (isListening) {
-                    recognitionRef.current.start();
-                }
-            };
-        }
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
-    }, [isListening]);
-
-    
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, scrollToBottom]);
-
-    const toggleListening = () => {
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-        } else {
-            try {
-                recognitionRef.current.start();
-                setIsListening(true);
-            } catch (error) {
-                console.error('Error starting speech recognition:', error);
-            }
-        }
-    };
-
-    const toggleSpeaking = () => {
-        if (!isSpeaking) {
-            
-            if (synthRef.current.speaking) {
-                synthRef.current.cancel();
-            }
-        } else {
-            
-            if (synthRef.current.speaking) {
-                synthRef.current.cancel();
-            }
-        }
-        setIsSpeaking(!isSpeaking);
-    };
-
-    const speak = (text) => {
-        if (!isSpeaking) return;
-
-        if (synthRef.current.speaking) {
-            synthRef.current.cancel();
-        }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        synthRef.current.speak(utterance);
-    };
-
     const handleSendMessage = async (message = input) => {
         if (!message.trim()) return;
 
-        
+        // Add user message to chat
         const userMessage = {
             id: messages.length + 1,
             text: message,
@@ -188,7 +78,7 @@ const Chatbot = ({ onClose }) => {
         setMessages(prev => [...prev, userMessage]);
         setInput('');
 
-        
+        // Add typing indicator
         const typingIndicator = {
             id: messages.length + 2,
             text: '...',
@@ -199,45 +89,34 @@ const Chatbot = ({ onClose }) => {
         setMessages(prev => [...prev, typingIndicator]);
 
         try {
-            
-            const context = getContext();
-            const prompt = `
-                ${context}
-                
-                Current page: ${window.location.pathname}
-                Current time: ${new Date().toLocaleString()}
-                User's message: "${message}"
-                
-                Guidelines for your response:
-                1. Be specific about where to find features in the application
-                2. Provide step-by-step guidance for multi-step processes
-                3. If the user is at a specific step (like profile completion), focus on that step
-                4. For application-related questions, remind about prerequisites (like profile completion)
-                5. Keep responses concise but thorough
-                6. If the user needs to complete a previous step, guide them there first
-                7. For SOP-related questions, offer specific writing tips or structural advice
-                8. If you're not sure about something, direct them to the support team
-                
-                Current task: Provide helpful guidance based on the user's message and their current location in the application flow.
-            `;
+            const token = getToken();
+            if (!token) {
+                throw new Error('Authentication required');
+            }
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            const response = await API.post('/ai/chat',
+                {
+                    message,
+                    context: getContext()
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
 
-            
+            // Remove typing indicator and add bot response
             setMessages(prev => [
                 ...prev.filter(msg => !msg.isTyping),
                 {
                     id: messages.length + 2,
-                    text: text,
+                    text: response.data.response,
                     sender: 'bot',
                     timestamp: new Date()
                 }
             ]);
-
-            
-            speak(text);
         } catch (error) {
             console.error('Error getting AI response:', error);
             setMessages(prev => [
@@ -264,7 +143,8 @@ const Chatbot = ({ onClose }) => {
             <div className="fixed bottom-4 right-4 z-50">
                 <button
                     onClick={() => setIsMinimized(false)}
-                    className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-transform hover:scale-110"
+                    className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center"
+                    aria-label="Open chat"
                 >
                     <MessageSquare size={24} />
                 </button>
@@ -273,98 +153,70 @@ const Chatbot = ({ onClose }) => {
     }
 
     return (
-        <div className="fixed bottom-4 right-4 w-96 bg-white rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden border border-gray-200" style={{ maxHeight: '80vh' }}>
-            {/* Header */}
+        <div className="fixed bottom-4 right-4 w-96 bg-white rounded-lg shadow-xl flex flex-col z-50 overflow-hidden">
             <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
-                <h3 className="font-semibold text-lg">Study Abroad Assistant</h3>
+                <h3 className="font-semibold">Study Abroad Assistant</h3>
                 <div className="flex space-x-2">
                     <button
-                        onClick={toggleSpeaking}
-                        className="p-1 rounded-full hover:bg-blue-500 transition-colors"
-                        title={isSpeaking ? 'Mute' : 'Unmute'}
-                    >
-                        {isSpeaking ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                    </button>
-                    <button
                         onClick={() => setIsMinimized(true)}
-                        className="p-1 rounded-full hover:bg-blue-500 transition-colors"
-                        title="Minimize"
+                        className="text-white hover:bg-blue-700 p-1 rounded"
+                        aria-label="Minimize chat"
                     >
                         <X size={18} />
                     </button>
+                    {onClose && (
+                        <button
+                            onClick={onClose}
+                            className="text-white hover:bg-blue-700 p-1 rounded"
+                            aria-label="Close chat"
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Messages */}
             <div
                 ref={messagesContainerRef}
-                className="flex-1 p-4 overflow-y-auto bg-gray-50"
-                style={{ maxHeight: 'calc(80vh - 180px)', minHeight: '200px' }}
+                className="flex-1 p-4 overflow-y-auto max-h-96"
             >
-                <div className="space-y-4">
-                    {messages.map((message) => (
+                {messages.map((msg) => (
+                    <div
+                        key={msg.id}
+                        className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}
+                    >
                         <div
-                            key={message.id}
-                            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`inline-block p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'}`}
                         >
-                            <div
-                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'user'
-                                    ? 'bg-blue-600 text-white rounded-br-none'
-                                    : 'bg-white border border-gray-200 rounded-bl-none'
-                                    }`}
-                            >
-                                {message.isTyping ? (
-                                    <div className="flex space-x-1 py-2">
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm">{message.text}</p>
-                                )}
-                                <p className="text-xs opacity-70 mt-1 text-right">
-                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </div>
+                            {msg.text}
                         </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                    </div>
+                ))}
+                <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-gray-200 p-3 bg-white">
-                <div className="flex items-end space-x-2">
-                    <div className="flex-1 relative">
-                        <textarea
-                            ref={inputRef}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Ask me about anything"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            rows="1"
-                            style={{ minHeight: '44px', maxHeight: '120px' }}
-                        />
-                        <button
-                            onClick={toggleListening}
-                            className={`absolute right-2 bottom-2 p-1 rounded-full ${isListening ? 'text-red-500' : 'text-gray-500 hover:text-gray-700'}`}
-                            title={isListening ? 'Stop listening' : 'Voice input'}
-                        >
-                            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
-                        </button>
-                    </div>
+            <div className="p-4 border-t">
+                <div className="flex items-center">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Type your message..."
+                        className="flex-1 border rounded-l-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                     <button
                         onClick={() => handleSendMessage()}
-                        disabled={!input.trim() || messages.some(m => m.isTyping)}
-                        className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="bg-blue-600 text-white p-2 rounded-r-lg hover:bg-blue-700 transition-colors"
+                        aria-label="Send message"
                     >
                         <Send size={20} />
                     </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                    Ask about programs, applications, or study abroad advice
-                </p>
             </div>
         </div>
     );

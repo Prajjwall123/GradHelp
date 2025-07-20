@@ -18,6 +18,7 @@ const scholarshipApplicationRoutes = require('./routes/scholarshipApplicationRou
 const authRoutes = require('./routes/authRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 connectDB();
 
@@ -32,8 +33,8 @@ const corsOptions = {
 app.use(generalLimiter);
 
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files with rate limiting
 app.use('/api/images', express.static(path.join(__dirname, 'images')));
@@ -60,6 +61,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/scholarship-applications', scholarshipApplicationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

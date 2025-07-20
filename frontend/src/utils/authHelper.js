@@ -55,13 +55,13 @@ const loginUser = async (credentials) => {
         console.log("Logging in with credentials:", credentials);
         const response = await API.post("/users/login", credentials);
 
-        
+
         storeUserData(response.data);
 
-        
+
         const isNewUser = localStorage.getItem('isNewUser') === 'true';
 
-        
+
         localStorage.removeItem('isNewUser');
 
         return {
@@ -69,7 +69,7 @@ const loginUser = async (credentials) => {
             isNewUser
         };
     } catch (error) {
-        
+
         const errorWithStatus = new Error(error.response?.data?.message || "Network error");
         errorWithStatus.status = error.response?.status;
         errorWithStatus.response = error.response;
@@ -81,7 +81,7 @@ const registerUser = async (userData) => {
     try {
         console.log("registering:", userData);
         const response = await API.post("/users/register", userData);
-        
+
         localStorage.setItem('isNewUser', 'true');
         return response.data;
     } catch (error) {
@@ -95,10 +95,10 @@ const verifyOTP = async (payload) => {
         const response = await API.post("/users/verify-otp", payload);
         const verifiedUser = response.data;
 
-        
+
         if (verifiedUser && verifiedUser.token) {
             storeUserData(verifiedUser);
-            
+
             localStorage.setItem('isNewUser', 'true');
         }
 
@@ -110,13 +110,13 @@ const verifyOTP = async (payload) => {
 };
 
 export {
-    loginUser,
-    registerUser,
-    verifyOTP,
-    storeUserData,
-    getUserData,
+    clearUserData,
     getToken,
+    getUserData,
     getUserInfo,
     isAuthenticated,
-    clearUserData
+    loginUser,
+    registerUser,
+    storeUserData,
+    verifyOTP
 };

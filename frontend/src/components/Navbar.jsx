@@ -20,7 +20,7 @@ const Navbar = () => {
   const user = getUserInfo();
   const isLoggedIn = isAuthenticated();
 
-  
+
   useEffect(() => {
     const fetchUserNotifications = async () => {
       if (isLoggedIn) {
@@ -32,7 +32,7 @@ const Navbar = () => {
     fetchUserNotifications();
   }, [isLoggedIn]);
 
-  
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -67,7 +67,6 @@ const Navbar = () => {
     { name: 'Programs', path: '/programs', icon: <BookOpen size={18} className="mr-2" /> },
     { name: 'About Us', path: '/about', icon: <Info size={18} className="mr-2" /> },
     { name: 'Contact Us', path: '/contact', icon: <Mail size={18} className="mr-2" /> },
-    { name: 'Mock Interview', path: '/mock-visa-interview', icon: <User size={18} className="mr-2" /> }
   ];
 
   const userMenuItems = [
@@ -121,8 +120,8 @@ const Navbar = () => {
                 key={item.name}
                 to={item.path}
                 className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${location.pathname === item.path
-                    ? 'bg-gray-800 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
               >
                 {item.icon}
