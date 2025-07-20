@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, MicOff, Volume2, VolumeX, MessageSquare } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import Typewriter from './Typewriter';
+import API from '../utils/api';
+import { getToken } from '../utils/authHelper';
 
 const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     const [messages, setMessages] = useState(initialMessages);
@@ -14,29 +15,6 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     const synthRef = useRef(window.speechSynthesis);
     const chatEndRef = useRef(null);
 
-    
-    const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    
-    const systemMessage = {
-        role: 'system',
-        content: `You are an AI assistant helping with Statement of Purpose (SOP) writing. 
-        The current SOP content is provided below. When the user asks you to improve or modify it, 
-        always return the updated SOP in a markdown code block. Keep your responses concise and focused.
-        
-        Current SOP:
-        ${currentSOP || 'No SOP content provided yet.'}
-        
-        Instructions:
-        1. Always include the updated SOP in a markdown code block if making changes
-        2. Keep your explanations brief
-        3. Focus on improving the content, grammar, and structure
-        4. Maintain the original meaning while enhancing clarity and impact
-        5. If the user asks about the SOP, refer to the content provided above`
-    };
-
-    
     useEffect(() => {
         if ('webkitSpeechRecognition' in window) {
             recognitionRef.current = new window.webkitSpeechRecognition();
@@ -47,11 +25,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
             recognitionRef.current.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 console.log('Voice input:', transcript);
-
-                
                 const voicePrompt = `Current SOP: ${currentSOP}\n\nUser request: ${transcript}`;
-
-                
                 handleSendMessage(voicePrompt);
             };
 
@@ -114,66 +88,18 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
 
     const speak = (text) => {
         if (!isSpeaking) return;
-
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.onend = () => setIsSpeaking(false);
         synthRef.current.speak(utterance);
     };
 
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 2000; 
-
-    const callGeminiWithRetry = async (message, retryCount = 0) => {
-        try {
-            const chat = model.startChat({
-                history: [
-                    {
-                        role: 'user',
-                        parts: [{ text: systemMessage.content }]
-                    },
-                    ...messages.slice(-4).map(msg => ({
-                        role: msg.role === 'assistant' ? 'model' : 'user',
-                        parts: [{
-                            text: msg.role === 'user' && msg.content.includes('Current SOP:')
-                                ? message
-                                : msg.content
-                        }]
-                    })),
-                    {
-                        role: 'user',
-                        parts: [{ text: message }]
-                    }
-                ],
-                generationConfig: {
-                    temperature: 0.7,
-                    response_mime_type: 'text/plain',
-                },
-            });
-
-            const result = await chat.sendMessage(message);
-            const response = await result.response;
-            return response.text();
-
-        } catch (error) {
-            if (error.message.includes('overloaded') || error.code === 503) {
-                if (retryCount < MAX_RETRIES) {
-                    console.log(`Model overloaded, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
-                    return callGeminiWithRetry(message, retryCount + 1);
-                }
-                throw new Error('The model is currently overloaded. Please try again in a few moments.');
-            }
-            throw error;
-        }
-    };
-
     const handleSendMessage = async (message = input) => {
         if (!message.trim()) return;
 
-        
+        // Check if this is a voice message with SOP included
         const isVoiceWithSOP = message.includes('Current SOP:');
 
-        
+        // For display, extract just the user's message part if it's a voice message
         const displayMessage = isVoiceWithSOP
             ? message.split('User request:')[1]?.trim() || message
             : message;
@@ -181,7 +107,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         const userMessage = {
             id: Date.now(),
             role: 'user',
-            content: displayMessage, 
+            content: displayMessage,
             timestamp: new Date()
         };
 
@@ -190,54 +116,67 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         setIsLoading(true);
 
         try {
-            console.log('Sending message to Gemini...');
+            console.log('Sending message to backend...');
 
-            
-            const apiMessage = isVoiceWithSOP ? message : `Current SOP: ${currentSOP}\n\nUser request: ${message}`;
-            const text = await callGeminiWithRetry(apiMessage);
-            console.log('Response received from Gemini');
-
-            
-            let messageContent = text;
-            let updatedEssay = null;
-
-            
-            const essayMatch = text.match(/```(?:markdown)?\n([\s\S]*?)\n```/);
-
-            if (essayMatch && essayMatch[1]) {
-                updatedEssay = essayMatch[1].trim();
-                
-                messageContent = text.replace(/```[\s\S]*?```/g, '').trim() ||
-                    'I\'ve updated your SOP with the requested changes.';
-                console.log('Found and extracted updated SOP');
+            const token = getToken();
+            if (!token) {
+                throw new Error('Authentication required');
             }
 
-            const botMessage = {
+            // Prepare the message for the backend
+            const backendMessage = isVoiceWithSOP
+                ? message
+                : `Current SOP: ${currentSOP}\n\nUser request: ${message}`;
+
+            const response = await API.post('/ai/chat/sop',
+                {
+                    message: backendMessage,
+                    context: `You are an AI assistant helping with Statement of Purpose (SOP) writing. ` +
+                        `The current SOP content is provided in the message. When the user asks you to improve or modify it, ` +
+                        `always return the updated SOP in a markdown code block. Keep your responses concise and focused.`
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            console.log('Response received from backend');
+            const responseText = response.data.response;
+
+            const assistantMessage = {
                 id: Date.now() + 1,
                 role: 'assistant',
-                content: messageContent,
-                updatedEssay: updatedEssay,
+                content: responseText,
                 timestamp: new Date()
             };
 
-            handleBotMessage(botMessage);
-            if (isSpeaking) speak(messageContent);
+            setMessages(prev => [...prev, assistantMessage]);
+
+            // Call the onMessage callback if provided (for SOP updates)
+            if (onMessage) {
+                onMessage(assistantMessage.content);
+            }
+
+            // Auto-speak the response if speaking is enabled
+            if (isSpeaking) {
+                speak(responseText);
+            }
 
         } catch (error) {
-            console.error('Error in handleSendMessage:', error);
+            console.error('Error sending message:', error);
 
             const errorMessage = {
                 id: Date.now() + 1,
                 role: 'assistant',
-                content: error.message.includes('overloaded')
-                    ? 'The AI service is currently experiencing high demand. Please try again in a few moments.'
-                    : `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`,
+                content: 'Sorry, I encountered an error processing your request. Please try again.',
                 isError: true,
                 timestamp: new Date()
             };
 
             setMessages(prev => [...prev, errorMessage]);
-            if (onMessage) onMessage(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -254,7 +193,6 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         handleSendMessage();
     };
 
-    
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -327,8 +265,8 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
                             onTouchStart={startListening}
                             onTouchEnd={stopListening}
                             className={`p-1.5 rounded-full transition-colors ${isListening
-                                    ? 'text-white bg-red-500'
-                                    : 'text-gray-500 hover:bg-gray-100'
+                                ? 'text-white bg-red-500'
+                                : 'text-gray-500 hover:bg-gray-100'
                                 }`}
                             disabled={isLoading}
                         >
@@ -338,8 +276,8 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
                             type="button"
                             onClick={toggleSpeaking}
                             className={`p-1.5 rounded-full transition-colors ${isSpeaking
-                                    ? 'text-blue-600 bg-blue-100'
-                                    : 'text-gray-500 hover:bg-gray-100'
+                                ? 'text-blue-600 bg-blue-100'
+                                : 'text-gray-500 hover:bg-gray-100'
                                 }`}
                         >
                             {isSpeaking ? <Volume2 size={18} /> : <VolumeX size={18} />}
@@ -353,8 +291,8 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
                                 }
                             }}
                             className={`p-1.5 rounded-full transition-colors ${input.trim()
-                                    ? 'text-blue-600 hover:bg-blue-50'
-                                    : 'text-gray-400'
+                                ? 'text-blue-600 hover:bg-blue-50'
+                                : 'text-gray-400'
                                 }`}
                             disabled={!input.trim() || isLoading}
                         >

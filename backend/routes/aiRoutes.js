@@ -196,4 +196,51 @@ router.post('/chat', authLimiter, async (req, res) => {
     }
 });
 
+// SOP-specific chat endpoint
+router.post('/chat/sop', authLimiter, async (req, res) => {
+    try {
+        const { message, context } = req.body;
+
+        if (!message || typeof message !== 'string') {
+            return res.status(400).json({
+                error: 'Please provide a valid message.'
+            });
+        }
+
+        const model = genAI.getGenerativeModel(getModelConfig());
+
+        const chatPrompt = `
+            ${context || ''}
+            
+            Current time: ${new Date().toLocaleString()}
+            User's message: "${message}"
+            
+            You are an AI assistant specialized in helping with Statement of Purpose (SOP) writing.
+            
+            Guidelines for your response:
+            1. Always include the updated SOP in a markdown code block if making changes
+            2. Keep your explanations brief and focused on the SOP
+            3. Focus on improving the content, grammar, and structure
+            4. Maintain the original meaning while enhancing clarity and impact
+            5. If the user asks about the SOP, refer to the content in the message
+            6. If the message contains a current SOP, use it as context for your response
+            7. When suggesting changes, explain why they improve the SOP
+            8. Be encouraging and constructive in your feedback
+            
+            Current task: Help the user with their SOP based on their message.
+        `;
+
+        const result = await model.generateContent(chatPrompt);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ response: text });
+    } catch (error) {
+        console.error('Error in SOP chat endpoint:', error);
+        res.status(500).json({
+            error: 'Failed to process your SOP request. Please try again later.'
+        });
+    }
+});
+
 module.exports = router;
