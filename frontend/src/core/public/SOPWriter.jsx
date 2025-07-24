@@ -28,7 +28,7 @@ const SOPWriter = () => {
     const location = useLocation();
     const isInitialMount = useRef(true);
 
-    
+
     useEffect(() => {
         if (location.state?.course && location.state?.university) {
             console.log('University data:', location.state.university);
@@ -45,19 +45,19 @@ const SOPWriter = () => {
         }
     }, [location.state]);
 
-    
+
     const handleContentUpdate = useCallback((newContent) => {
         if (!newContent || newContent === content) return;
 
-        
+
         const editor = editorRef.current;
         const scrollTop = editor?.scrollTop || 0;
 
-        
+
         setContent(newContent);
         setIsUpdatingEssay(true);
 
-        
+
         requestAnimationFrame(() => {
             if (editor) {
                 editor.scrollTop = scrollTop;
@@ -80,16 +80,16 @@ const SOPWriter = () => {
 
     const handleConfirmSubmit = async () => {
         try {
-            
+
             const applicationId = location.state?.applicationId;
             if (!applicationId) {
                 throw new Error('No application ID found');
             }
 
-            
+
             await updateApplicationSOP(applicationId, content);
 
-            
+
             toast.success('SOP updated successfully!', {
                 position: "top-right",
                 autoClose: 3000,
@@ -100,10 +100,10 @@ const SOPWriter = () => {
                 progress: undefined,
             });
 
-            
+
             setShowConfirmModal(false);
 
-            
+
             setTimeout(() => {
                 navigate('/my-applications');
             }, 1500);
@@ -118,18 +118,18 @@ const SOPWriter = () => {
         setShowConfirmModal(false);
     };
 
-    
+
     const handleBotMessage = useCallback((message) => {
         if (message.updatedEssay) {
             handleContentUpdate(message.updatedEssay);
         }
     }, [handleContentUpdate]);
 
-    
+
     const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
     const characterCount = content.length;
 
-    
+
     const initialMessages = [{
         id: 1,
         role: 'assistant',
@@ -150,7 +150,7 @@ const SOPWriter = () => {
                                     <div className="flex-shrink-0 bg-gray-800 p-3 rounded-lg">
                                         {courseData.university_photo ? (
                                             <img
-                                                src={`http://localhost:3000/api/images/${courseData.university_photo}`}
+                                                src={`https://localhost:3443/api/images/${courseData.university_photo}`}
                                                 alt={`${courseData.universityName} logo`}
                                                 className="w-12 h-12 object-contain rounded-lg"
                                             />

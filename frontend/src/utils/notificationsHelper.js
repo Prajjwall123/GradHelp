@@ -1,4 +1,4 @@
-import axios from 'axios';
+import API from './api';
 import { getUserInfo } from './authHelper';
 
 export const fetchNotifications = async () => {
@@ -6,7 +6,7 @@ export const fetchNotifications = async () => {
         const user = getUserInfo();
         if (!user?._id) return [];
 
-        const response = await axios.get(`http://localhost:3000/api/notifications/user/${user._id}`);
+        const response = await API.get(`/notifications/user/${user._id}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -16,8 +16,9 @@ export const fetchNotifications = async () => {
 
 export const markNotificationAsRead = async (notificationId) => {
     try {
-        await axios.post(`http://localhost:3000/api/notifications/${notificationId}/read`);
+        await API.post(`/notifications/${notificationId}/read`);
     } catch (error) {
         console.error('Error marking notification as read:', error);
+        throw error;
     }
 };

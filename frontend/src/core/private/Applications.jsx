@@ -248,7 +248,7 @@ const Applications = () => {
                                                     )}
                                                     {application.acceptanceLetter && (
                                                         <a
-                                                            href={`http://localhost:3000/uploads/letters/${application.acceptanceLetter.split('/').pop()}`}
+                                                            href={`https://localhost:3443/uploads/letters/${application.acceptanceLetter.split('/').pop()}`}
                                                             download={`acceptance_letter_${application.course.university.university_name.replace(/\s+/g, '_')}.pdf`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -260,7 +260,7 @@ const Applications = () => {
                                                     )}
                                                     {application.rejectionLetter && (
                                                         <a
-                                                            href={`http://localhost:3000/uploads/letters/${application.rejectionLetter.split('/').pop()}`}
+                                                            href={`https://localhost:3443/uploads/letters/${application.rejectionLetter.split('/').pop()}`}
                                                             download={`rejection_letter_${application.course.university.university_name.replace(/\s+/g, '_')}.pdf`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -362,7 +362,7 @@ const Applications = () => {
                                             <div className="mt-3 flex space-x-2">
                                                 {app.acceptanceLetter && (
                                                     <a
-                                                        href={`http://localhost:3000/${app.acceptanceLetter.split('/').pop()}`}
+                                                        href={`https://localhost:3443/${app.acceptanceLetter.split('/').pop()}`}
                                                         download={`acceptance_letter_${app._id}.pdf`}
                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
                                                     >
@@ -372,7 +372,7 @@ const Applications = () => {
                                                 )}
                                                 {app.rejectionLetter && (
                                                     <a
-                                                        href={`http://localhost:3000/${app.rejectionLetter.split('/').pop()}`}
+                                                        href={`https://localhost:3443/${app.rejectionLetter.split('/').pop()}`}
                                                         download={`rejection_letter_${app._id}.pdf`}
                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
                                                     >

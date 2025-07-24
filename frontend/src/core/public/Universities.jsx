@@ -15,7 +15,7 @@ const Universities = () => {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [filtersApplied, setFiltersApplied] = useState(false);
 
-  
+
   const formatCurrency = (amount) => {
     if (amount === 0 || amount === undefined) return 'Contact University';
     return new Intl.NumberFormat('en-US', {
@@ -25,11 +25,11 @@ const Universities = () => {
     }).format(amount);
   };
 
-  
+
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/100';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:3000/api/images/${imagePath}`;
+    return `https://localhost:3443/api/images/${imagePath}`;
   };
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const Universities = () => {
     fetchData();
   }, []);
 
-  
+
   const getAvailableCountries = (universities) => {
     const countrySet = new Set();
     universities.forEach(uni => {
@@ -60,20 +60,20 @@ const Universities = () => {
     return ['All Countries', ...Array.from(countrySet).sort()];
   };
 
-  
+
   const handleSearch = (e) => {
     e.preventDefault();
     setFiltersApplied(true);
   };
 
-  
+
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCountry('all');
     setFiltersApplied(false);
   };
 
-  
+
   const filteredUniversities = universities.filter(university => {
     const matchesSearch =
       searchTerm === '' ||
@@ -112,7 +112,7 @@ const Universities = () => {
     );
   }
 
-  
+
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">

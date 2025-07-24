@@ -24,7 +24,7 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
   ];
 
   const handleNext = () => {
-    
+
     if (currentStep === 0 && !selectedIntake) {
       toast.error('Please select an intake');
       return;
@@ -397,7 +397,7 @@ const CourseDetail = () => {
   const [appliedScholarships, setAppliedScholarships] = useState([]);
   const currentUser = getUserInfo();
 
-  
+
   const handleAuthRequired = (e, action) => {
     e?.preventDefault();
     if (!isAuthenticated()) {
@@ -409,27 +409,27 @@ const CourseDetail = () => {
     return true;
   };
 
-  
+
   const handleViewDetails = (e, scholarshipName) => {
     if (handleAuthRequired(e)) {
       console.log('View details for:', scholarshipName);
     }
   };
 
-  
+
   const handleApplyNow = (e) => {
     if (handleAuthRequired(e)) {
       setShowApplicationModal(true);
     }
   };
 
-  
+
   const handleApplicationSubmit = async (applicationData) => {
     try {
-      
+
       await createApplication(course._id, applicationData.intake);
 
-      
+
       toast.success('Application created successfully!', {
         position: 'top-right',
         autoClose: 3000,
@@ -439,10 +439,10 @@ const CourseDetail = () => {
         draggable: true,
       });
 
-      
+
       setShowApplicationModal(false);
 
-      
+
       navigate('/my-applications');
 
     } catch (error) {
@@ -473,9 +473,9 @@ const CourseDetail = () => {
         setIsLoading(true);
         const courseData = await getCourseById(id);
         setCourse(courseData);
-        console.log('Course data:', courseData); 
+        console.log('Course data:', courseData);
 
-        
+
         if (courseData.university?._id) {
           console.log('Fetching scholarships for university:', courseData.university._id);
           await fetchScholarships(courseData.university._id);
@@ -498,12 +498,12 @@ const CourseDetail = () => {
     setIsLoadingScholarships(true);
     try {
       const response = await getScholarshipsByUniversityId(universityId);
-      console.log('Scholarships response:', response); 
+      console.log('Scholarships response:', response);
 
-      
+
       const scholarshipsData = Array.isArray(response) ? response : [];
 
-      console.log('Extracted scholarships:', scholarshipsData); 
+      console.log('Extracted scholarships:', scholarshipsData);
       setScholarships(scholarshipsData);
     } catch (error) {
       console.error('Error fetching scholarships:', error);
@@ -556,7 +556,7 @@ const CourseDetail = () => {
     );
   }
 
-  
+
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
     return new Intl.NumberFormat('en-GB', {
@@ -581,7 +581,7 @@ const CourseDetail = () => {
                 {course.university?.photo && (
                   <div className="w-10 h-10 bg-white rounded-full border border-gray-200 flex items-center justify-center mr-3 overflow-hidden">
                     <img
-                      src={`http://localhost:3000${course.university.photo}`}
+                      src={`https://localhost:3443${course.university.photo}`}
                       alt={`${course.university.name} logo`}
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
@@ -756,7 +756,7 @@ const CourseDetail = () => {
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
                       {course.university?.photo ? (
                         <img
-                          src={`http://localhost:3000${course.university.photo}`}
+                          src={`https://localhost:3443${course.university.photo}`}
                           alt={`${course.university.name} logo`}
                           className="w-8 h-8 object-contain"
                           onError={(e) => {
@@ -777,7 +777,7 @@ const CourseDetail = () => {
                           if (course.university?._id) {
                             window.open(`/university/${course.university._id}`, '_blank', 'noopener,noreferrer');
                           } else {
-                            
+
                           }
                         }}
                         className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-1 inline-flex items-center transition-colors"

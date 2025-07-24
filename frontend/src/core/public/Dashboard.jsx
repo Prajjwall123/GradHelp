@@ -48,7 +48,7 @@ const Dashboard = () => {
       return {
         id: course._id,
         courseId: course._id,
-        logo: course.university?.photo ? `http://localhost:3000${course.university.photo}` : null,
+        logo: course.university?.photo ? `https://localhost:3443${course.university.photo}` : null,
         university: course.university?.name || 'University',
         level: course.course_level ?
           course.course_level.charAt(0).toUpperCase() + course.course_level.slice(1) :

@@ -16,7 +16,7 @@ const Courses = () => {
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [filtersApplied, setFiltersApplied] = useState(false);
 
-  
+
   const formatCurrency = (amount) => {
     if (!amount && amount !== 0) return 'Contact University';
     return new Intl.NumberFormat('en-US', {
@@ -26,11 +26,11 @@ const Courses = () => {
     }).format(amount);
   };
 
-  
+
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/100';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:3000${imagePath}`;
+    return `https://localhost:3443${imagePath}`;
   };
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-  
+
   const getAvailableCountries = () => {
     const countrySet = new Set();
     courses.forEach(course => {
@@ -61,7 +61,7 @@ const Courses = () => {
     return ['All Countries', ...Array.from(countrySet).sort()];
   };
 
-  
+
   const getAvailableLevels = () => {
     const levelMap = {
       'undergraduate': 'Undergraduate',
@@ -85,13 +85,13 @@ const Courses = () => {
     ];
   };
 
-  
+
   const handleSearch = (e) => {
     e.preventDefault();
     setFiltersApplied(true);
   };
 
-  
+
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCountry('all');
@@ -99,7 +99,7 @@ const Courses = () => {
     setFiltersApplied(false);
   };
 
-  
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch =
       searchTerm === '' ||
