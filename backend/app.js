@@ -53,7 +53,7 @@ app.use("/api/universities", universityRoutes);
 app.use("/api/scholarships", scholarshipRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/profile", profileRoutes);
+app.use("/api/profiles", profileRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/application-decisions", applicationDecisionRoutes);
 app.use("/api/scholarship-decisions", scholarshipDecisionRoutes);
