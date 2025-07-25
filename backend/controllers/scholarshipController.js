@@ -27,6 +27,7 @@ const getScholarshipById = async (req, res) => {
     }
 };
 
+//admin
 const updateScholarship = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -48,6 +49,7 @@ const updateScholarship = async (req, res) => {
     }
 };
 
+//admin
 const deleteScholarship = async (req, res) => {
     const { id } = req.params;
 
@@ -65,6 +67,7 @@ const deleteScholarship = async (req, res) => {
     }
 };
 
+//admin
 const createScholarship = async (req, res) => {
     try {
 

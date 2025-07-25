@@ -69,6 +69,7 @@ const getCourseById = async (req, res) => {
     }
 };
 
+//admin
 const updateCourse = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -90,6 +91,7 @@ const updateCourse = async (req, res) => {
     }
 };
 
+//admin
 const deleteCourse = async (req, res) => {
     const { id } = req.params;
 
@@ -107,6 +109,7 @@ const deleteCourse = async (req, res) => {
     }
 };
 
+//admin
 const createCourse = async (req, res) => {
     try {
         const university = await University.findById(req.body.university);

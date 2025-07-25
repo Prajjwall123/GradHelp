@@ -2,7 +2,7 @@ const Application = require('../models/application');
 const fs = require('fs');
 const path = require('path');
 
-
+//admin
 const saveFile = (file, applicationId, type) => {
     if (!file) return null;
 
@@ -19,7 +19,7 @@ const saveFile = (file, applicationId, type) => {
     return `/uploads/letters/${filename}`;
 };
 
-
+//admin
 const acceptApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
@@ -69,7 +69,7 @@ const acceptApplication = async (req, res) => {
     }
 };
 
-
+//admin
 const rejectApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;

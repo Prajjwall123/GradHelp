@@ -6,8 +6,8 @@ const User = require('../models/user');
 
 const createScholarshipApplication = async (req, res) => {
     try {
-        const { scholarshipId, userId } = req.body;
-
+        const { scholarshipId } = req.body;
+        const userId = req.user._id;
 
         const scholarship = await Scholarship.findById(scholarshipId);
         if (!scholarship) {
@@ -17,7 +17,6 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-
         const profile = await Profile.findOne({ user: userId });
         if (!profile) {
             return res.status(404).json({
@@ -25,7 +24,6 @@ const createScholarshipApplication = async (req, res) => {
                 message: 'Profile not found for this user'
             });
         }
-
 
         const application = await Application.findOne({
             profile: profile._id
@@ -41,7 +39,6 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-
         const existingApplication = await ScholarshipApplication.findOne({
             profile: profile._id,
             scholarship: scholarshipId
@@ -54,7 +51,6 @@ const createScholarshipApplication = async (req, res) => {
             });
         }
 
-
         const scholarshipApplication = new ScholarshipApplication({
             user: userId,
             profile: profile._id,
@@ -65,17 +61,14 @@ const createScholarshipApplication = async (req, res) => {
 
         await scholarshipApplication.save();
 
-
         const populatedApp = await ScholarshipApplication.findById(scholarshipApplication._id)
             .populate('user', 'full_name email')
             .populate('scholarship', 'name')
             .populate('application');
 
-
         const profileData = await Profile.findOne({ user: userId })
             .select('firstName lastName')
             .lean();
-
 
         const response = {
             ...populatedApp.toObject(),
@@ -101,15 +94,7 @@ const createScholarshipApplication = async (req, res) => {
 
 const getMyScholarshipApplications = async (req, res) => {
     try {
-        const { userId } = req.query;
-
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                message: 'User ID is required'
-            });
-        }
-
+        const userId = req.user._id;
 
         const profile = await Profile.findOne({ user: userId });
         if (!profile) {
@@ -118,7 +103,6 @@ const getMyScholarshipApplications = async (req, res) => {
                 message: 'Profile not found for this user'
             });
         }
-
 
         const applications = await ScholarshipApplication.find({ user: userId })
             .populate('scholarship', 'name description deadline')

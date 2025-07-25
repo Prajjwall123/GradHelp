@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { Types } = require('mongoose');
 
-
 const cleanupOldFile = async (userId, fieldName) => {
     try {
         if (!Types.ObjectId.isValid(userId)) {
@@ -22,7 +21,6 @@ const cleanupOldFile = async (userId, fieldName) => {
         throw error;
     }
 };
-
 
 const createProfile = async (userId, profileData = {}) => {
     try {
@@ -43,10 +41,9 @@ const createProfile = async (userId, profileData = {}) => {
     }
 };
 
-
 const getProfile = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user._id;
 
         if (!Types.ObjectId.isValid(userId)) {
             return res.status(400).json({
@@ -80,10 +77,9 @@ const getProfile = async (req, res) => {
     }
 };
 
-
 const updateProfile = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user._id;
 
         if (!Types.ObjectId.isValid(userId)) {
             return res.status(400).json({
@@ -154,11 +150,10 @@ const updateProfile = async (req, res) => {
             });
         }
 
-        const statusCode = error.name === 'ValidationError' ? 400 : 500;
-        res.status(statusCode).json({
+        res.status(500).json({
             success: false,
-            message: error.message || 'Error updating profile',
-            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };

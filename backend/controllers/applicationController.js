@@ -6,7 +6,7 @@ const { hasMongoOperators } = require("../validations/applicationValidation");
 
 const getApplicationsByUser = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user._id;
 
         const profile = await Profile.findOne({ user: userId })
             .populate('user', 'full_name email');
@@ -31,7 +31,6 @@ const getApplicationsByUser = async (req, res) => {
             ...app.toObject(),
             profile: {
                 ...profileData,
-
                 user: {
                     _id: profileData.user._id,
                     full_name: profileData.user.full_name,
@@ -48,7 +47,8 @@ const getApplicationsByUser = async (req, res) => {
 
 const createApplication = async (req, res) => {
     try {
-        const { userId, courseId, intake } = req.body;
+        const { courseId, intake } = req.body;
+        const userId = req.user._id;
 
         const profile = await Profile.findOne({ user: userId });
 
@@ -94,6 +94,12 @@ const getApplicationById = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
+        // Verify that the application belongs to the user
+        const userId = req.user._id;
+        if (String(application.profile.user) !== String(userId)) {
+            return res.status(403).json({ message: "Not authorized to view this application" });
+        }
+
         res.json(application);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -102,7 +108,14 @@ const getApplicationById = async (req, res) => {
 
 const getApplicationsByProfile = async (req, res) => {
     try {
-        const applications = await Application.find({ profile: req.params.profileId })
+        const userId = req.user._id;
+        const profile = await Profile.findOne({ user: userId });
+
+        if (!profile) {
+            return res.status(404).json({ message: "Profile not found" });
+        }
+
+        const applications = await Application.find({ profile: profile._id })
             .populate('course')
             .sort({ appliedAt: -1 });
 
@@ -115,18 +128,23 @@ const getApplicationsByProfile = async (req, res) => {
 const updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const application = await Application.findByIdAndUpdate(
-            req.params.id,
-            {
-                status,
-                updatedAt: Date.now()
-            },
-            { new: true }
-        );
+        const userId = req.user._id;
+
+        const application = await Application.findById(req.params.id)
+            .populate('profile');
 
         if (!application) {
             return res.status(404).json({ message: "Application not found" });
         }
+
+        // Verify that the application belongs to the user
+        if (String(application.profile.user) !== String(userId)) {
+            return res.status(403).json({ message: "Not authorized to update this application" });
+        }
+
+        application.status = status;
+        application.updatedAt = Date.now();
+        await application.save();
 
         res.json(application);
     } catch (error) {
@@ -136,12 +154,20 @@ const updateApplicationStatus = async (req, res) => {
 
 const deleteApplication = async (req, res) => {
     try {
-        const application = await Application.findByIdAndDelete(req.params.id);
+        const userId = req.user._id;
+        const application = await Application.findById(req.params.id)
+            .populate('profile');
 
         if (!application) {
             return res.status(404).json({ message: "Application not found" });
         }
 
+        // Verify that the application belongs to the user
+        if (String(application.profile.user) !== String(userId)) {
+            return res.status(403).json({ message: "Not authorized to delete this application" });
+        }
+
+        await application.deleteOne();
         res.json({ message: "Application deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -196,6 +222,7 @@ const updateApplicationSOP = async (req, res) => {
     try {
         const { applicationId } = req.params;
         const { sop } = req.body;
+        const userId = req.user._id;
 
         if (!sop) {
             return res.status(400).json({
@@ -222,20 +249,8 @@ const updateApplicationSOP = async (req, res) => {
 
         const sanitizedSOP = sanitizeHTML(sop);
 
-        const application = await Application.findByIdAndUpdate(
-            applicationId,
-            {
-                $set: {
-                    sop: sanitizedSOP,
-                    status: 'under_review',
-                    updatedAt: new Date()
-                }
-            },
-            {
-                new: true,
-                runValidators: true
-            }
-        );
+        const application = await Application.findById(applicationId)
+            .populate('profile');
 
         if (!application) {
             return res.status(404).json({
@@ -247,6 +262,16 @@ const updateApplicationSOP = async (req, res) => {
                 }]
             });
         }
+
+        // Verify that the application belongs to the user
+        if (String(application.profile.user) !== String(userId)) {
+            return res.status(403).json({ message: "Not authorized to update this application" });
+        }
+
+        application.sop = sanitizedSOP;
+        application.status = 'under_review';
+        application.updatedAt = new Date();
+        await application.save();
 
         res.status(200).json({
             success: true,

@@ -184,6 +184,7 @@ const login = async (req, res) => {
     }
 };
 
+//admin
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -218,6 +219,7 @@ const updateUser = async (req, res) => {
     }
 };
 
+//admin
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;

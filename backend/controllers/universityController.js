@@ -2,6 +2,7 @@ const University = require("../models/university");
 const fs = require('fs');
 const path = require('path');
 
+//admin
 const createUniversity = async (req, res) => {
     try {
         const universityData = req.body;
@@ -34,6 +35,7 @@ const createUniversity = async (req, res) => {
     }
 };
 
+//admin
 const updateUniversity = async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,6 +76,7 @@ const updateUniversity = async (req, res) => {
     }
 };
 
+//admin
 const deleteUniversity = async (req, res) => {
     try {
         const { id } = req.params;

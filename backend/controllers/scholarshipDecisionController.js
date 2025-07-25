@@ -18,6 +18,7 @@ const saveFile = (file, scholarshipAppId, type) => {
     return `/uploads/scholarship-letters/${filename}`;
 };
 
+//admin
 const acceptScholarshipApplication = async (req, res) => {
     try {
         const { scholarshipAppId } = req.params;
@@ -107,7 +108,7 @@ const acceptScholarshipApplication = async (req, res) => {
     }
 };
 
-
+//admin
 const rejectScholarshipApplication = async (req, res) => {
     try {
         const { scholarshipAppId } = req.params;
