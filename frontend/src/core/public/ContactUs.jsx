@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Mail, Phone, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -8,6 +8,39 @@ import Footer from '../../components/Footer';
 import Chatbot from '../../components/Chatbot';
 import { submitContactForm } from '../../utils/contactHelper';
 
+const validateForm = (formData) => {
+    const errors = {};
+
+    if (!formData.name.trim()) {
+        errors.name = 'Name is required';
+    } else if (formData.name.length > 100) {
+        errors.name = 'Name must be less than 100 characters';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+        errors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+    } else if (formData.email.length > 100) {
+        errors.email = 'Email must be less than 100 characters';
+    }
+
+    if (!formData.subject.trim()) {
+        errors.subject = 'Subject is required';
+    } else if (formData.subject.length > 200) {
+        errors.subject = 'Subject must be less than 200 characters';
+    }
+
+    if (!formData.message.trim()) {
+        errors.message = 'Message is required';
+    } else if (formData.message.length > 2000) {
+        errors.message = 'Message must be less than 2000 characters';
+    }
+
+    return errors;
+};
+
 const ContactUs = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -15,23 +48,40 @@ const ContactUs = () => {
         subject: '',
         message: ''
     });
+    const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
-    };
+
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    }, [errors]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const formErrors = validateForm(formData);
+        if (Object.keys(formErrors).length > 0) {
+            setErrors(formErrors);
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
             await submitContactForm(formData);
-            toast.success('Your message has been sent successfully! We\'ll get back to you soon.', {
+
+            const sanitizedSubject = formData.subject.replace(/<[^>]*>?/gm, '');
+            toast.success(`Thank you for your message about "${sanitizedSubject}". We'll get back to you soon!`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -41,19 +91,21 @@ const ContactUs = () => {
                 theme: "light",
             });
 
-            
             setFormData({
                 name: '',
                 email: '',
                 subject: '',
                 message: ''
             });
+            setErrors({});
+
         } catch (error) {
             console.error('Error submitting form:', error);
 
+            const safeErrorMessage = error.message.replace(/<[^>]*>?/gm, '');
             const errorMessage = error.status === 429
                 ? 'Too many requests from this IP, please try again later'
-                : error.message || 'Failed to send message. Please try again later.';
+                : safeErrorMessage || 'Failed to send message. Please try again later.';
 
             toast.error(errorMessage, {
                 position: "top-right",
@@ -90,11 +142,11 @@ const ContactUs = () => {
                                 className="bg-white p-8 rounded-xl shadow-md"
                             >
                                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Send us a message</h2>
-                                <form onSubmit={handleSubmit} className="space-y-5">
+                                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div className="space-y-1">
                                             <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                                                Your Name
+                                                Your Name {errors.name && <span className="text-red-500 text-xs">({errors.name})</span>}
                                             </label>
                                             <input
                                                 type="text"
@@ -102,14 +154,16 @@ const ContactUs = () => {
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                                                className={`w-full px-4 py-2.5 border ${errors.name ? 'border-red-500' : 'border-gray-300'
+                                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700`}
                                                 required
                                                 disabled={isSubmitting}
+                                                maxLength={100}
                                             />
                                         </div>
                                         <div className="space-y-1">
                                             <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                                                Email Address
+                                                Email Address {errors.email && <span className="text-red-500 text-xs">({errors.email})</span>}
                                             </label>
                                             <input
                                                 type="email"
@@ -117,15 +171,17 @@ const ContactUs = () => {
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                                                className={`w-full px-4 py-2.5 border ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700`}
                                                 required
                                                 disabled={isSubmitting}
+                                                maxLength={100}
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-1">
                                         <label htmlFor="subject" className="text-sm font-medium text-gray-700">
-                                            Subject
+                                            Subject {errors.subject && <span className="text-red-500 text-xs">({errors.subject})</span>}
                                         </label>
                                         <input
                                             type="text"
@@ -133,14 +189,16 @@ const ContactUs = () => {
                                             name="subject"
                                             value={formData.subject}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                                            className={`w-full px-4 py-2.5 border ${errors.subject ? 'border-red-500' : 'border-gray-300'
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700`}
                                             required
                                             disabled={isSubmitting}
+                                            maxLength={200}
                                         />
                                     </div>
                                     <div className="space-y-1">
                                         <label htmlFor="message" className="text-sm font-medium text-gray-700">
-                                            Your Message
+                                            Your Message {errors.message && <span className="text-red-500 text-xs">({errors.message})</span>}
                                         </label>
                                         <textarea
                                             id="message"
@@ -148,18 +206,18 @@ const ContactUs = () => {
                                             rows="4"
                                             value={formData.message}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                                            className={`w-full px-4 py-2.5 border ${errors.message ? 'border-red-500' : 'border-gray-300'
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700`}
                                             required
                                             disabled={isSubmitting}
-                                        ></textarea>
+                                            maxLength={2000}
+                                        />
                                     </div>
                                     <div className="pt-2">
-                                        <motion.button
+                                        <button
                                             type="submit"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            className="w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                                             disabled={isSubmitting}
+                                            className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {isSubmitting ? (
                                                 <>
@@ -171,11 +229,11 @@ const ContactUs = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Send className="w-5 h-5 mr-2" />
+                                                    <Send className="h-5 w-5 mr-2" />
                                                     Send Message
                                                 </>
                                             )}
-                                        </motion.button>
+                                        </button>
                                     </div>
                                 </form>
                             </motion.div>
