@@ -1,6 +1,8 @@
 const Application = require("../models/application");
 const Profile = require("../models/profile");
 const Course = require("../models/course");
+const { sanitizeHTML } = require("../validations/applicationValidation");
+const { hasMongoOperators } = require("../validations/applicationValidation");
 
 const getApplicationsByUser = async (req, res) => {
     try {
@@ -193,48 +195,81 @@ const cleanSOPContent = (content) => {
 const updateApplicationSOP = async (req, res) => {
     try {
         const { applicationId } = req.params;
-        let { sop, userId } = req.body;
+        const { sop } = req.body;
 
         if (!sop) {
-            return res.status(400).json({ message: "SOP content is required" });
+            return res.status(400).json({
+                success: false,
+                message: 'SOP content is required',
+                errors: [{
+                    field: 'sop',
+                    message: 'SOP content cannot be empty'
+                }]
+            });
         }
 
-        if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
+        // Additional security check
+        if (hasMongoOperators({ sop })) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request: potential security issue detected',
+                errors: [{
+                    field: 'sop',
+                    message: 'Request contains potentially dangerous content'
+                }]
+            });
         }
 
-        const application = await Application.findById(applicationId);
+        const sanitizedSOP = sanitizeHTML(sop);
+
+        const application = await Application.findByIdAndUpdate(
+            applicationId,
+            {
+                $set: {
+                    sop: sanitizedSOP,
+                    status: 'under_review',
+                    updatedAt: new Date()
+                }
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
 
         if (!application) {
-            return res.status(404).json({ message: "Application not found" });
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found',
+                errors: [{
+                    field: 'applicationId',
+                    message: 'No application found with the provided ID'
+                }]
+            });
         }
 
-        const profile = await Profile.findOne({ user: userId });
-        if (!profile || !application.profile.equals(profile._id)) {
-            return res.status(403).json({ message: "Not authorized to update this application" });
-        }
-
-        const cleanedSOP = cleanSOPContent(sop);
-
-        application.sop = cleanedSOP;
-        application.status = 'under_review';
-        application.updatedAt = Date.now();
-
-        await application.save();
-
-        res.json({
-            message: "SOP updated successfully",
-            application: {
-                id: application._id,
-                status: application.status,
-                sop: application.sop
+        res.status(200).json({
+            success: true,
+            message: 'SOP updated and application marked for review',
+            data: {
+                sop: application.sop,
+                status: 'under_review',
+                updatedAt: application.updatedAt
             }
         });
     } catch (error) {
-        console.error("Error updating SOP:", error);
+        console.error('Error updating SOP:', error);
+
+        const errorMessage = process.env.NODE_ENV === 'development'
+            ? error.message
+            : 'An error occurred while updating the SOP';
+
         res.status(500).json({
-            message: "An error occurred while updating the SOP",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            success: false,
+            message: 'Failed to update SOP',
+            errors: [{
+                message: errorMessage
+            }]
         });
     }
 };

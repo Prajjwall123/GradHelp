@@ -3,6 +3,7 @@ import { Send, X, MessageSquare } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import API from '../utils/api';
 import { getToken } from '../utils/authHelper';
+import { sanitizeInput, sanitizeHTML } from '../utils/sanitize';
 
 const Chatbot = ({ onClose }) => {
     const location = useLocation();
@@ -56,21 +57,32 @@ const Chatbot = ({ onClose }) => {
         `;
     }, [location]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    const handleInputChange = (e) => {
+        const sanitizedValue = sanitizeInput(e.target.value);
+        setInput(sanitizedValue);
+    };
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
 
-    const handleSendMessage = async (message = input) => {
-        if (!message.trim()) return;
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
-        // Add user message to chat
+    const handleSendMessage = async (e) => {
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
+
+        const messageToSend = input.trim();
+        if (!messageToSend) return;
+
+        const sanitizedMessage = sanitizeInput(messageToSend);
+
         const userMessage = {
             id: messages.length + 1,
-            text: message,
+            text: sanitizedMessage,
             sender: 'user',
             timestamp: new Date()
         };
@@ -78,64 +90,50 @@ const Chatbot = ({ onClose }) => {
         setMessages(prev => [...prev, userMessage]);
         setInput('');
 
-        // Add typing indicator
-        const typingIndicator = {
-            id: messages.length + 2,
-            text: '...',
-            sender: 'bot',
-            isTyping: true,
-            timestamp: new Date()
-        };
-        setMessages(prev => [...prev, typingIndicator]);
-
         try {
             const token = getToken();
             if (!token) {
-                throw new Error('Authentication required');
+                throw new Error('You need to be logged in to chat');
             }
 
-            const response = await API.post('/ai/chat',
-                {
-                    message,
-                    context: getContext()
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const context = getContext();
 
-            // Remove typing indicator and add bot response
-            setMessages(prev => [
-                ...prev.filter(msg => !msg.isTyping),
-                {
-                    id: messages.length + 2,
-                    text: response.data.response,
-                    sender: 'bot',
-                    timestamp: new Date()
+            const response = await API.post('/ai/chat', {
+                message: sanitizedMessage,
+                context: context
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-            ]);
+            });
+
+            const botResponse = {
+                id: messages.length + 2,
+                text: sanitizeHTML(response.data.response),
+                sender: 'bot',
+                timestamp: new Date()
+            };
+
+            setMessages(prev => [...prev, botResponse]);
         } catch (error) {
-            console.error('Error getting AI response:', error);
-            setMessages(prev => [
-                ...prev.filter(msg => !msg.isTyping),
-                {
-                    id: messages.length + 2,
-                    text: 'Sorry, I encountered an error. Please try again.',
-                    sender: 'bot',
-                    timestamp: new Date()
-                }
-            ]);
+            console.error('Error sending message:', error);
+
+            const errorMessage = {
+                id: messages.length + 2,
+                text: 'Sorry, I encountered an error. Please try again later.',
+                sender: 'bot',
+                timestamp: new Date(),
+                isError: true
+            };
+
+            setMessages(prev => [...prev, errorMessage]);
         }
     };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        handleSendMessage();
     };
 
     if (isMinimized) {
@@ -187,9 +185,8 @@ const Chatbot = ({ onClose }) => {
                     >
                         <div
                             className={`inline-block p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'}`}
-                        >
-                            {msg.text}
-                        </div>
+                            dangerouslySetInnerHTML={{ __html: msg.text }}
+                        />
                         <div className="text-xs text-gray-500 mt-1">
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
@@ -198,26 +195,27 @@ const Chatbot = ({ onClose }) => {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center">
                     <input
                         ref={inputRef}
                         type="text"
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onChange={handleInputChange}
                         placeholder="Type your message..."
-                        className="flex-1 border rounded-l-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        aria-label="Type your message"
                     />
                     <button
-                        onClick={() => handleSendMessage()}
-                        className="bg-blue-600 text-white p-2 rounded-r-lg hover:bg-blue-700 transition-colors"
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         aria-label="Send message"
+                        onClick={handleSendMessage}
                     >
                         <Send size={20} />
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     );
 };

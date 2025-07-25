@@ -11,6 +11,56 @@ import Chatbot from '../../components/Chatbot';
 import './SOPWriter.css';
 import { updateApplicationSOP } from '../../utils/applicationHelper';
 
+const sanitizeInput = (input) => {
+    if (!input || typeof input !== 'string') return '';
+
+    return input
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/javascript:/gi, '')
+        .replace(/on\w+\s*=\s*["']?[^"']*["']?/gi, '')
+        .replace(/<[^>]+\s+[^>]*\b(?:on\w+|style|formaction|href|src)=[^>]*>/gi, '')
+        .replace(/&[#\w]+;/gi, '')
+        .replace(/<\?[^>]*>|\{\{[^}]*\}\}/gi, '')
+        .replace(/<[^>]+\s+[^>]*\b(?:expression\(|eval\(|setTimeout\(|setInterval\(|Function\(|new\s+Function\().*?[;)]/gi, '')
+        .replace(/<[^>]+\s+[^>]*\b(?:background|dynsrc|lowsrc|src)\s*=\s*[^>]*/gi, '')
+        .replace(/<[^>]+\s+[^>]*\b(?:data|vbscript):[^>]*/gi, '')
+        .replace(/<[^>]+\s+[^>]*\b(?:alert\(|prompt\(|confirm\(|document\.|window\.|eval\(|setTimeout\(|setInterval\(|Function\(|new\s+Function\().*?[;)]/gi, '');
+};
+
+const hasNoSqlInjection = (input) => {
+    if (!input || typeof input !== 'string') return false;
+
+    const mongoOperators = [
+        /\{\s*\$[a-zA-Z0-9_]+\s*:/,
+        /\{\s*[a-zA-Z0-9_]+\s*:\s*\{\s*\$[a-zA-Z0-9_]+\s*:/,
+        /\$where\s*:/i,
+        /\$ne\s*:/i,
+        /\$gt\s*:/i,
+        /\$gte\s*:/i,
+        /\$lt\s*:/i,
+        /\$lte\s*:/i,
+        /\$in\s*:/i,
+        /\$nin\s*:/i,
+        /\$exists\s*:/i,
+        /\$type\s*:/i,
+        /\$not\s*:/i,
+        /\$regex\s*:/i,
+        /\$text\s*:/i,
+        /\$search\s*:/i,
+        /\$jsonSchema\s*:/i
+    ];
+
+    const jsPatterns = [
+        /\b(?:function\s*\(|=>|\breturn\s+true\b|\breturn\s+false\b|\bthis\b|\bprocess\b|\beval\s*\()/,
+        /\b(?:__proto__|prototype|constructor)\b/
+    ];
+
+    return [
+        ...mongoOperators,
+        ...jsPatterns
+    ].some(pattern => pattern.test(input));
+};
+
 const SOPWriter = () => {
     const [content, setContent] = useState('');
     const [isUpdatingEssay, setIsUpdatingEssay] = useState(false);
@@ -28,6 +78,15 @@ const SOPWriter = () => {
     const location = useLocation();
     const isInitialMount = useRef(true);
 
+    const handleContentChange = (e) => {
+        const newContent = e.target.value;
+        if (hasNoSqlInjection(newContent)) {
+            toast.error('Invalid input: Potential security issue detected');
+            return;
+        }
+        const sanitizedContent = sanitizeInput(newContent);
+        setContent(sanitizedContent);
+    };
 
     useEffect(() => {
         if (location.state?.course && location.state?.university) {
@@ -45,18 +104,15 @@ const SOPWriter = () => {
         }
     }, [location.state]);
 
-
     const handleContentUpdate = useCallback((newContent) => {
         if (!newContent || newContent === content) return;
-
 
         const editor = editorRef.current;
         const scrollTop = editor?.scrollTop || 0;
 
-
-        setContent(newContent);
+        const sanitizedContent = sanitizeInput(newContent);
+        setContent(sanitizedContent);
         setIsUpdatingEssay(true);
-
 
         requestAnimationFrame(() => {
             if (editor) {
@@ -86,9 +142,12 @@ const SOPWriter = () => {
                 throw new Error('No application ID found');
             }
 
+            if (hasNoSqlInjection(content)) {
+                toast.error('Cannot save: Invalid input detected');
+                return;
+            }
 
             await updateApplicationSOP(applicationId, content);
-
 
             toast.success('SOP updated successfully!', {
                 position: "top-right",
@@ -100,9 +159,7 @@ const SOPWriter = () => {
                 progress: undefined,
             });
 
-
             setShowConfirmModal(false);
-
 
             setTimeout(() => {
                 navigate('/my-applications');
@@ -118,17 +175,14 @@ const SOPWriter = () => {
         setShowConfirmModal(false);
     };
 
-
     const handleBotMessage = useCallback((message) => {
         if (message.updatedEssay) {
             handleContentUpdate(message.updatedEssay);
         }
     }, [handleContentUpdate]);
 
-
     const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
     const characterCount = content.length;
-
 
     const initialMessages = [{
         id: 1,
@@ -221,7 +275,7 @@ const SOPWriter = () => {
                                             ref={textareaRef}
                                             className="essay-editor w-full p-6 text-base leading-relaxed text-gray-800 focus:outline-none resize-none bg-white"
                                             value={content}
-                                            onChange={(e) => setContent(e.target.value)}
+                                            onChange={handleContentChange}
                                             placeholder="Start writing your Statement of Purpose here..."
                                             style={{
                                                 minHeight: '100%',
