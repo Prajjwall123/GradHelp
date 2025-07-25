@@ -179,60 +179,135 @@ const login = async (req, res) => {
     }
 };
 
-//admin
-const updateUser = async (req, res) => {
+// Get all users (admin only)
+const getAllUsers = async (req, res) => {
     try {
-        const { id } = req.params;
-        const updates = req.body;
+        const users = await User.find({}, '-password');
+        res.status(200).json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        console.error('Error getting all users:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching users'
+        });
+    }
+};
 
-        delete updates.password;
-        delete updates.email;
-
-        const user = await User.findByIdAndUpdate(
-            id,
-            { $set: updates },
-            { new: true, runValidators: true }
-        );
-
+// Get user by ID (admin only)
+const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: "User not found"
+                message: 'User not found'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        console.error('Error getting user by ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching the user'
+        });
+    }
+};
+
+// Update user (can be used by user for self or by admin for any user)
+const updateUser = async (req, res) => {
+    try {
+        const { full_name, email, role } = req.body;
+        const userId = req.params.id || req.user._id; // Get from params for admin, from token for self
+
+        // If not admin, can only update own profile
+        if (req.user.role !== 'admin' && String(userId) !== String(req.user._id)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to update this user'
+            });
+        }
+
+        const updateData = { full_name, email };
+
+        // Only allow role update for admins
+        if (req.user.role === 'admin' && role) {
+            updateData.role = role;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
             });
         }
 
         res.status(200).json({
             success: true,
-            user
+            data: updatedUser
         });
     } catch (error) {
-        console.error("Error updating user:", error);
+        console.error('Error updating user:', error);
         res.status(500).json({
             success: false,
-            message: "An error occurred while updating user"
+            message: 'An error occurred while updating the user'
         });
     }
 };
 
-//admin
+// Delete user (can be used by user for self or by admin for any user)
 const deleteUser = async (req, res) => {
     try {
-        const { id } = req.params;
+        const userId = req.params.id || req.user._id; // Get from params for admin, from token for self
 
-        await Promise.all([
-            User.findByIdAndDelete(id),
-            Profile.findOneAndDelete({ user: id })
-        ]);
+        // If not admin, can only delete own account
+        if (req.user.role !== 'admin' && String(userId) !== String(req.user._id)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to delete this user'
+            });
+        }
+
+        // Prevent admin from deleting themselves
+        if (String(userId) === String(req.user._id) && req.user.role === 'admin') {
+            return res.status(400).json({
+                success: false,
+                message: 'Admins cannot delete their own accounts'
+            });
+        }
+
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Also delete associated profile
+        await Profile.findOneAndDelete({ user: userId });
 
         res.status(200).json({
             success: true,
-            message: "User deleted successfully"
+            message: 'User deleted successfully'
         });
     } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error('Error deleting user:', error);
         res.status(500).json({
             success: false,
-            message: "An error occurred while deleting user"
+            message: 'An error occurred while deleting the user'
         });
     }
 };
@@ -242,5 +317,7 @@ module.exports = {
     verifyOTP,
     login,
     updateUser,
-    deleteUser
+    deleteUser,
+    getAllUsers,
+    getUserById
 };

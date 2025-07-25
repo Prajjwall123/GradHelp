@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../middleware/auth");
+const adminAuth = require("../middleware/adminAuth");
 
 const {
     getAllScholarships,
@@ -10,11 +12,17 @@ const {
     getScholarshipsByUniversity
 } = require("../controllers/scholarshipController");
 
+// Public routes
 router.get("/", getAllScholarships);
-router.post("/", createScholarship);
-router.get("/:id", getScholarshipById);
-router.put("/:id", updateScholarship);
-router.delete("/:id", deleteScholarship);
 router.get("/university/:universityId", getScholarshipsByUniversity);
+router.get("/:id", getScholarshipById);
+
+// Protected routes (require authentication)
+router.use(auth);
+
+// Admin-only routes
+router.post("/", adminAuth, createScholarship);
+router.put("/:id", adminAuth, updateScholarship);
+router.delete("/:id", adminAuth, deleteScholarship);
 
 module.exports = router;

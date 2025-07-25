@@ -125,6 +125,7 @@ const getApplicationsByProfile = async (req, res) => {
     }
 };
 
+//admin
 const updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body;

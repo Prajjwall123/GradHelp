@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 const {
     getAllUniversities,
     getUniversityById,
@@ -33,10 +35,16 @@ const upload = multer({
     }
 });
 
+// Public routes
 router.get("/", getAllUniversities);
-router.post("/", upload.single('university_photo'), createUniversity);
 router.get("/:id", getUniversityById);
-router.put("/:id", upload.single('university_photo'), updateUniversity);
-router.delete("/:id", deleteUniversity);
+
+// Protected routes (require authentication)
+router.use(auth);
+
+// Admin-only routes
+router.post("/", adminAuth, upload.single('university_photo'), createUniversity);
+router.put("/:id", adminAuth, upload.single('university_photo'), updateUniversity);
+router.delete("/:id", adminAuth, deleteUniversity);
 
 module.exports = router;
