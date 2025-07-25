@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check, User, Book, Globe, FileText, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
@@ -11,8 +10,9 @@ import VisaStep from './profile-steps/VisaStep';
 import EnglishTestStep from './profile-steps/EnglishTestStep';
 import { updateProfile, getProfile } from '../../utils/profileHelper';
 import { getUserInfo } from '../../utils/authHelper';
+import sanitizeInput from '../../utils/sanitizeInput';
 
-
+// Profile image
 import profileImage from '../../assets/profile-side-image.jpg';
 
 const steps = [
@@ -30,14 +30,14 @@ const ProfileStepper = () => {
     const navigate = useNavigate();
     const hasShownWelcome = useRef(false);
     const [formData, setFormData] = useState({
-        
+        // Personal info
         gender: '',
         address: '',
         city: '',
         date_of_birth: '',
         first_language: '',
 
-        
+        // Education
         institution_name: '',
         field_of_study: '',
         highest_education_level: '',
@@ -46,7 +46,7 @@ const ProfileStepper = () => {
         currently_enrolled: false,
         graduation_status: false,
 
-        
+        // Visa
         visa_application_country: '',
         visa_type: '',
         application_date: '',
@@ -56,7 +56,7 @@ const ProfileStepper = () => {
         application_country: '',
         application_year: '',
 
-        
+        // English test
         english_test: {
             test_type: '',
             reading: '',
@@ -67,15 +67,15 @@ const ProfileStepper = () => {
         },
     });
 
-    
+    // Check if user is coming from login page
     const isFromLogin = location.state?.fromLogin === true;
 
-    
+    // Show welcome toast if user is coming from login page
     useEffect(() => {
         if (location.state?.fromLogin && !hasShownWelcome.current) {
             hasShownWelcome.current = true;
 
-            
+            // Show welcome toast
             setTimeout(() => {
                 toast.info('Please enter your information', {
                     autoClose: 5000,
@@ -98,7 +98,7 @@ const ProfileStepper = () => {
         }
     }, [location.state]);
 
-    
+    // Fetch profile data from API
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -110,21 +110,21 @@ const ProfileStepper = () => {
 
                 const profile = await getProfile(user._id);
                 if (profile) {
-                    
+                    // Remove passport number from profile data
                     const { passport_number, ...profileWithoutPassport } = profile;
 
-                    
+                    // Map profile data to form data
                     const mappedData = {
                         ...profileWithoutPassport,
-                        
+                        // Map user data
                         fullName: profile.user?.full_name || '',
                         email: profile.user?.email || '',
-                        
+                        // Format date fields
                         date_of_birth: profile.date_of_birth ? profile.date_of_birth.split('T')[0] : '',
                         application_date: profile.application_date ? profile.application_date.split('T')[0] : '',
                         english_test: {
                             ...(profile.english_test || {}),
-                            
+                            // Format exam date
                             exam_date: profile.english_test?.exam_date
                                 ? profile.english_test.exam_date.split('T')[0]
                                 : null
@@ -138,9 +138,9 @@ const ProfileStepper = () => {
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
-                
+                // Don't show error toast if profile is not found
                 if (error.response?.status !== 404) {
-                    
+                    // toast.error(error.message || 'Failed to fetch profile');
                 }
             } finally {
                 setIsLoading(false);
@@ -150,7 +150,7 @@ const ProfileStepper = () => {
         fetchProfile();
     }, []);
 
-    
+    // Save form data to API
     const saveFormData = async (data) => {
         try {
             setIsSubmitting(true);
@@ -168,18 +168,18 @@ const ProfileStepper = () => {
     const handleNext = async (e) => {
         if (e) e.preventDefault();
 
-        
+        // Save form data
         const success = await saveFormData(formData);
         if (success) {
             if (activeStep < steps.length - 1) {
                 setActiveStep(prev => prev + 1);
             } else {
-                
+                // Show success toast
                 toast.success('Profile updated successfully!');
                 console.log('Profile update complete');
                 setTimeout(() => {
                     navigate('/dashboard');
-                }, 1500); 
+                }, 1500); // Navigate to dashboard after 1.5 seconds
             }
         }
     };
@@ -197,7 +197,7 @@ const ProfileStepper = () => {
         if (success) {
             toast.success('Profile updated successfully!');
             console.log('Profile update complete');
-            
+            // Navigate to dashboard after 1.5 seconds
             setTimeout(() => {
                 navigate('/dashboard');
             }, 1500);
@@ -205,30 +205,47 @@ const ProfileStepper = () => {
     };
 
     const handleChange = (e) => {
+        // Check if the event has a target and name property
+        if (!e || !e.target) {
+            console.warn('Event or event target is undefined');
+            return;
+        }
+
         const { name, value, type, checked } = e.target;
 
+        // Log a warning if name is missing but don't block the event
+        if (!name) {
+            console.warn('Input element is missing name attribute:', e.target);
+            return;
+        }
+
+        // For text inputs, sanitize the value before updating state
+        const sanitizedValue = (type === 'text' || type === 'textarea')
+            ? sanitizeInput(value, { allowBasicFormatting: false, stripHtml: true })
+            : value;
+
         setFormData(prev => {
-            
+            // Handle nested objects (e.g., english_test.reading)
             if (name.includes('.')) {
                 const [parent, child] = name.split('.');
                 return {
                     ...prev,
                     [parent]: {
-                        ...(prev[parent] || {}), 
-                        [child]: type === 'checkbox' ? checked : (type === 'number' ? Number(value) : value)
+                        ...(prev[parent] || {}),
+                        [child]: type === 'checkbox' ? checked : (type === 'number' ? Number(sanitizedValue) : sanitizedValue)
                     }
                 };
             }
 
-            
+            // Handle date fields
             if (name === 'date_of_birth' || name === 'application_date' || name === 'exam_date') {
                 return {
                     ...prev,
-                    [name]: value ? new Date(value).toISOString().split('T')[0] : ''
+                    [name]: sanitizedValue ? new Date(sanitizedValue).toISOString().split('T')[0] : ''
                 };
             }
 
-            
+            // Handle checkboxes
             if (type === 'checkbox') {
                 return {
                     ...prev,
@@ -236,18 +253,18 @@ const ProfileStepper = () => {
                 };
             }
 
-            
+            // Handle number inputs
             if (type === 'number') {
                 return {
                     ...prev,
-                    [name]: value === '' ? '' : Number(value)
+                    [name]: sanitizedValue === '' ? '' : Number(sanitizedValue)
                 };
             }
 
-            
+            // Default case for text inputs
             return {
                 ...prev,
-                [name]: value
+                [name]: sanitizedValue
             };
         });
     };

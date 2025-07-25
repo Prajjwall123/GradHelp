@@ -1,9 +1,43 @@
 import React from 'react';
 import { User, Mail, Calendar, MapPin, Home } from 'lucide-react';
+import sanitizeInput from '../../../utils/sanitizeInput';
 
 const PersonalInfoStep = ({ formData, handleChange }) => {
     const [showEmailError, setShowEmailError] = React.useState(false);
     const [dateError, setDateError] = React.useState('');
+
+    const handleTextInputChange = (e) => {
+        const { name, value } = e.target;
+
+        // Only proceed if name exists
+        if (!name) {
+            console.error('Input element is missing name attribute');
+            return;
+        }
+
+        const sanitizedValue = sanitizeInput(value, {
+            allowBasicFormatting: false,
+            stripHtml: true
+        });
+
+        // Create a new synthetic event with all original properties
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                name, // Make sure name is included
+                value: sanitizedValue
+            },
+            currentTarget: {
+                ...e.currentTarget,
+                name, // Also include name in currentTarget
+                value: sanitizedValue
+            },
+            persist: () => { } // Add empty persist method to prevent errors
+        };
+
+        handleChange(syntheticEvent);
+    };
 
     const handleEmailFocus = (e) => {
         e.preventDefault();
@@ -54,7 +88,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                                 type="text"
                                 name="fullName"
                                 value={formData.fullName || ''}
-                                onChange={handleChange}
+                                onChange={handleTextInputChange}
                                 className="block w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="John Doe"
                                 required
@@ -148,7 +182,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                         <textarea
                             name="address"
                             value={formData.address || ''}
-                            onChange={handleChange}
+                            onChange={handleTextInputChange}
                             rows="2"
                             className="block w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Enter your full address"
@@ -167,7 +201,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                             type="text"
                             name="city"
                             value={formData.city || ''}
-                            onChange={handleChange}
+                            onChange={handleTextInputChange}
                             className="block w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                             placeholder="New York"
                             required

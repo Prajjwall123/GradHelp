@@ -8,7 +8,7 @@ export const updateProfile = async (profileData) => {
             throw new Error('No user is currently logged in');
         }
 
-        
+        // Get authentication token
         const authData = JSON.parse(localStorage.getItem('auth'));
         const token = authData?.token;
 
@@ -16,52 +16,55 @@ export const updateProfile = async (profileData) => {
             throw new Error('No authentication token found');
         }
 
-        
         const formData = new FormData();
 
-        
-        Object.keys(profileData).forEach(key => {
-            
-            if (typeof profileData[key] === 'object' && !(profileData[key] instanceof File)) {
-                
-                if (key === 'english_test' && profileData.english_test) {
-                    Object.keys(profileData.english_test).forEach(nestedKey => {
-                        
-                        if (profileData.english_test[nestedKey] === null ||
-                            profileData.english_test[nestedKey] === undefined) {
-                            return;
-                        }
+        // Add a helper function to safely handle object iteration
+        const safeAppendData = (key, value) => {
+            if (value === null || value === undefined) return;
 
-                        
-                        if (nestedKey === 'english_transcript' && profileData.english_test.english_transcript) {
-                            formData.append('english_transcript', profileData.english_test.english_transcript);
-                        }
-                        
-                        else if (nestedKey === 'exam_date' && profileData.english_test.exam_date) {
-                            formData.append('english_test[exam_date]', profileData.english_test.exam_date);
-                        }
-                        
-                        else if (nestedKey !== 'exam_date') {
-                            formData.append(`english_test[${nestedKey}]`, profileData.english_test[nestedKey]);
-                        }
-                    });
-                } else {
-                    
-                    Object.keys(profileData[key]).forEach(nestedKey => {
-                        if (profileData[key][nestedKey] !== null && profileData[key][nestedKey] !== undefined) {
-                            formData.append(`${key}[${nestedKey}]`, profileData[key][nestedKey]);
-                        }
-                    });
-                }
-            } else if ((key === 'education_transcript' && profileData.education_transcript) ||
-                (key === 'english_transcript' && profileData.english_transcript)) {
-                
-                formData.append(key, profileData[key]);
+            if (value instanceof File || typeof value !== 'object') {
+                formData.append(key, value);
+                return;
+            }
+
+            // Handle nested objects
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+                    if (nestedValue !== null && nestedValue !== undefined) {
+                        formData.append(`${key}[${nestedKey}]`, nestedValue);
+                    }
+                });
             } else {
-                
-                if (profileData[key] !== null && profileData[key] !== undefined) {
-                    formData.append(key, profileData[key]);
-                }
+                formData.append(key, value);
+            }
+        };
+
+        // Process all profile data
+        Object.entries(profileData).forEach(([key, value]) => {
+            if (value === null || value === undefined) return;
+
+            // Special handling for english_test
+            if (key === 'english_test' && value) {
+                Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+                    if (nestedValue === null || nestedValue === undefined) return;
+
+                    if (nestedKey === 'english_transcript' && nestedValue) {
+                        formData.append('english_transcript', nestedValue);
+                    } else if (nestedKey === 'exam_date' && nestedValue) {
+                        formData.append('english_test[exam_date]', nestedValue);
+                    } else if (nestedKey !== 'exam_date') {
+                        formData.append(`english_test[${nestedKey}]`, nestedValue);
+                    }
+                });
+            }
+            // Handle file uploads
+            else if ((key === 'education_transcript' && value) ||
+                (key === 'english_transcript' && value)) {
+                formData.append(key, value);
+            }
+            // Handle all other fields
+            else {
+                safeAppendData(key, value);
             }
         });
 
@@ -79,7 +82,10 @@ export const updateProfile = async (profileData) => {
         return response.data;
     } catch (error) {
         console.error('Error updating profile:', error);
-        throw error.response?.data || error;
+        const errorMessage = error.response?.data?.message ||
+            error.message ||
+            'Failed to update profile';
+        throw new Error(errorMessage);
     }
 };
 
@@ -90,7 +96,7 @@ export const getProfile = async () => {
             throw new Error('No user is currently logged in');
         }
 
-        
+        // Get authentication token
         const authData = JSON.parse(localStorage.getItem('auth'));
         const token = authData?.token;
 

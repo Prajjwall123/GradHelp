@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Globe, Calendar, FileText, ChevronDown } from 'lucide-react';
+import sanitizeInput from '../../../utils/sanitizeInput';
 
 const VisaStep = ({ formData, handleChange }) => {
     const [showPreviousVisa, setShowPreviousVisa] = useState(formData.previous_visa_application || false);
@@ -20,8 +20,47 @@ const VisaStep = ({ formData, handleChange }) => {
         'Approved', 'Rejected', 'Expired', 'Cancelled', 'In Progress'
     ];
 
+    const handleTextInputChange = (e) => {
+        const { name, value } = e.target;
+
+        // Only proceed if name exists
+        if (!name) {
+            console.error('Input element is missing name attribute');
+            return;
+        }
+
+        const sanitizedValue = sanitizeInput(value, {
+            allowBasicFormatting: false,
+            stripHtml: true
+        });
+
+        // Create a new synthetic event with all original properties
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                name, // Make sure name is included
+                value: sanitizedValue
+            },
+            currentTarget: {
+                ...e.currentTarget,
+                name, // Also include name in currentTarget
+                value: sanitizedValue
+            },
+            persist: () => { } // Add empty persist method to prevent errors
+        };
+
+        // If this is a year field, perform additional validation
+        if (name === 'application_year') {
+            handleYearChange(syntheticEvent);
+        } else {
+            handleChange(syntheticEvent);
+        }
+    };
+
     const handleYearChange = (e) => {
-        const year = parseInt(e.target.value, 10);
+        const { name, value } = e.target;
+        const year = parseInt(value, 10);
         const currentYear = new Date().getFullYear();
 
         if (year >= currentYear) {
@@ -30,10 +69,26 @@ const VisaStep = ({ formData, handleChange }) => {
         }
 
         setYearError('');
-        handleChange(e);
+
+        // Create a new synthetic event with all original properties
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                name, // Make sure name is included
+                value: year.toString()
+            },
+            currentTarget: {
+                ...e.currentTarget,
+                name, // Also include name in currentTarget
+                value: year.toString()
+            },
+            persist: () => { }
+        };
+
+        handleChange(syntheticEvent);
     };
 
-    
     useEffect(() => {
         setShowPreviousVisa(formData.previous_visa_application || false);
     }, [formData.previous_visa_application]);
@@ -154,6 +209,33 @@ const VisaStep = ({ formData, handleChange }) => {
                                             {visaStatuses.map((status) => (
                                                 <option key={status} value={status}>
                                                     {status}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Visa Type */}
+                                <div className="space-y-1.5">
+                                    <label className="block text-sm font-medium text-gray-700">Visa Type</label>
+                                    <div className="relative rounded-md shadow-sm">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <FileText className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <select
+                                            name="visa_type"
+                                            value={formData?.visa_type || ''}
+                                            onChange={handleTextInputChange}
+                                            className="appearance-none block w-full pl-10 pr-8 py-2.5 text-sm border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        >
+                                            <option value="">Select visa type</option>
+                                            {visaTypes.map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type}
                                                 </option>
                                             ))}
                                         </select>

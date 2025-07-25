@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Calendar, FileText, Upload } from 'lucide-react';
+import sanitizeInput from '../../../utils/sanitizeInput';
 
 const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
     const [testType, setTestType] = useState(formData.english_test?.test_type || '');
@@ -34,11 +34,41 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         other: { min: 0, max: 100, step: 1 }
     };
 
+    const sanitizeAndSetValue = (e) => {
+        const { name, value } = e.target;
+        const sanitizedValue = sanitizeInput(value, {
+            allowBasicFormatting: false,
+            stripHtml: true
+        });
+
+        // Create a new event with the sanitized value
+        const sanitizedEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                value: sanitizedValue
+            }
+        };
+
+        return sanitizedEvent;
+    };
+
+    const handleTextInputChange = (e) => {
+        const sanitizedEvent = sanitizeAndSetValue(e);
+
+        // If this is a test type change, handle it specially
+        if (e.target.name === 'test_type') {
+            handleTestTypeChange(sanitizedEvent);
+        } else {
+            handleChange(sanitizedEvent);
+        }
+    };
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        
+        // Validate file type
         const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         const fileType = file.type;
 
@@ -47,22 +77,19 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
             return;
         }
 
-        
+        // Validate file size (10MB max)
         if (file.size > 10 * 1024 * 1024) {
             setFileError('File size should not exceed 10MB');
             return;
         }
 
         setFileError('');
-
-        
         setFormData(prev => ({
             ...prev,
             english_test: {
                 ...prev.english_test,
-                
             },
-            english_transcript: file  
+            english_transcript: file
         }));
     };
 
@@ -77,11 +104,12 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         };
         setScores(newScores);
 
-        
+        // Update the form data with the sanitized score
+        const sanitizedValue = value === '' ? null : parseFloat(value);
         handleChange({
             target: {
                 name: `english_test.${section}`,
-                value: value === '' ? null : parseFloat(value)
+                value: sanitizedValue
             }
         });
     };
@@ -98,40 +126,27 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
     };
 
     const handleExamDateChange = (e) => {
-        const selectedDate = e.target.value;
-        setExamDate(selectedDate);
-
-        if (!selectedDate) {
-            setDateError('');
-            return;
-        }
-
+        const selectedDate = new Date(e.target.value);
         const today = new Date();
-        const twoYearsAgo = new Date();
-        twoYearsAgo.setFullYear(today.getFullYear() - 2);
 
-        const selectedDateObj = new Date(selectedDate);
-
-        if (selectedDateObj > today) {
+        if (selectedDate > today) {
             setDateError('Exam date cannot be in the future');
-            return;
-        }
-
-        if (selectedDateObj < twoYearsAgo) {
-            setDateError('Exam date cannot be more than 2 years ago');
             return;
         }
 
         setDateError('');
 
-        
-        setFormData(prev => ({
-            ...prev,
-            english_test: {
-                ...prev.english_test,
-                exam_date: selectedDateObj.toISOString()
+        // Create a sanitized event with the date in the correct format
+        const formattedDate = e.target.value; // YYYY-MM-DD format from date input
+
+        handleChange({
+            target: {
+                name: 'english_test.exam_date',
+                value: formattedDate
             }
-        }));
+        });
+
+        setExamDate(formattedDate);
     };
 
     const renderScoreInputs = () => {
@@ -188,7 +203,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
                             <select
                                 name="test_type"
                                 value={testType}
-                                onChange={handleTestTypeChange}
+                                onChange={handleTextInputChange}
                                 className="block w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">Select test type</option>

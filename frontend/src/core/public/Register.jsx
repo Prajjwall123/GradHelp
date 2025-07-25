@@ -19,13 +19,13 @@ const getPasswordStrength = (password) => {
 
     let strength = 0;
     const requirements = [
-        /.{8,}/,      
-        /[A-Z]/,      
-        /[0-9]/,      
-        /[^A-Za-z0-9]/ 
+        /.{8,}/,
+        /[A-Z]/,
+        /[0-9]/,
+        /[^A-Za-z0-9]/
     ];
 
-    
+
     requirements.forEach(req => {
         if (req.test(password)) strength += 25;
     });
@@ -82,7 +82,7 @@ const Register = () => {
     };
 
     const validateForm = () => {
-        
+
         const allChecksPassed = Object.values(passwordChecks).every(Boolean);
 
         if (form.password !== form.confirmPassword) {
@@ -105,7 +105,7 @@ const Register = () => {
         setLoading(true);
         try {
             await registerUser({
-                fullName: form.fullName,
+                full_name: form.fullName,
                 email: form.email,
                 password: form.password,
             });

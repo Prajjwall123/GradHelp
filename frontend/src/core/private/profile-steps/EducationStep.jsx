@@ -1,15 +1,48 @@
-
 import React, { useState } from 'react';
 import { GraduationCap, BookOpen, Award, FileText, Upload } from 'lucide-react';
+import sanitizeInput from '../../../utils/sanitizeInput';
 
 const EducationStep = ({ formData, handleChange, setFormData }) => {
     const [fileError, setFileError] = useState('');
+
+    const handleTextInputChange = (e) => {
+        const { name, value } = e.target;
+
+        // Only proceed if name exists
+        if (!name) {
+            console.error('Input element is missing name attribute');
+            return;
+        }
+
+        const sanitizedValue = sanitizeInput(value, {
+            allowBasicFormatting: false,
+            stripHtml: true
+        });
+
+        // Create a new synthetic event with all original properties
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                name, // Make sure name is included
+                value: sanitizedValue
+            },
+            currentTarget: {
+                ...e.currentTarget,
+                name, // Also include name in currentTarget
+                value: sanitizedValue
+            },
+            persist: () => { } // Add empty persist method to prevent errors
+        };
+
+        handleChange(syntheticEvent);
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        
+        // Validate file type
         const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         const fileType = file.type;
 
@@ -18,15 +51,13 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
             return;
         }
 
-        
+        // Validate file size (10MB max)
         if (file.size > 10 * 1024 * 1024) {
             setFileError('File size should not exceed 10MB');
             return;
         }
 
         setFileError('');
-
-        
         setFormData(prev => ({
             ...prev,
             education_transcript: file
@@ -80,7 +111,7 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
                             type="text"
                             name="institution_name"
                             value={formData.institution_name || ''}
-                            onChange={handleChange}
+                            onChange={handleTextInputChange}
                             className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Enter institution name"
                             required
@@ -99,7 +130,7 @@ const EducationStep = ({ formData, handleChange, setFormData }) => {
                             type="text"
                             name="field_of_study"
                             value={formData.field_of_study || ''}
-                            onChange={handleChange}
+                            onChange={handleTextInputChange}
                             className="block w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Enter field of study"
                             required
