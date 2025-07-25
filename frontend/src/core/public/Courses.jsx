@@ -16,6 +16,12 @@ const Courses = () => {
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [filtersApplied, setFiltersApplied] = useState(false);
 
+  const sanitizeInput = (input) => {
+    if (!input) return '';
+    return input
+      .replace(/<[^>]*>?/gm, '') 
+      .substring(0, 100); 
+  };
 
   const formatCurrency = (amount) => {
     if (!amount && amount !== 0) return 'Contact University';
@@ -25,7 +31,6 @@ const Courses = () => {
       maximumFractionDigits: 0
     }).format(amount);
   };
-
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/100';
@@ -49,7 +54,6 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-
   const getAvailableCountries = () => {
     const countrySet = new Set();
     courses.forEach(course => {
@@ -60,7 +64,6 @@ const Courses = () => {
     });
     return ['All Countries', ...Array.from(countrySet).sort()];
   };
-
 
   const getAvailableLevels = () => {
     const levelMap = {
@@ -85,12 +88,13 @@ const Courses = () => {
     ];
   };
 
-
   const handleSearch = (e) => {
     e.preventDefault();
+    // Sanitize the search term before applying filter
+    const sanitizedSearch = sanitizeInput(searchTerm);
+    setSearchTerm(sanitizedSearch);
     setFiltersApplied(true);
   };
-
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -98,7 +102,6 @@ const Courses = () => {
     setSelectedLevel('all');
     setFiltersApplied(false);
   };
-
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch =
@@ -197,7 +200,7 @@ const Courses = () => {
                   placeholder="Search courses..."
                   className="block w-full pl-12 pr-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-800 rounded-l-lg md:rounded-r-none"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(sanitizeInput(e.target.value))}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
                 />
               </div>

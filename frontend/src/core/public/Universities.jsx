@@ -15,6 +15,12 @@ const Universities = () => {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [filtersApplied, setFiltersApplied] = useState(false);
 
+  const sanitizeInput = (input) => {
+    if (!input) return '';
+    return input
+      .replace(/<[^>]*>?/gm, '')
+      .substring(0, 100);
+  };
 
   const formatCurrency = (amount) => {
     if (amount === 0 || amount === undefined) return 'Contact University';
@@ -24,7 +30,6 @@ const Universities = () => {
       maximumFractionDigits: 0
     }).format(amount);
   };
-
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/100';
@@ -48,7 +53,6 @@ const Universities = () => {
     fetchData();
   }, []);
 
-
   const getAvailableCountries = (universities) => {
     const countrySet = new Set();
     universities.forEach(uni => {
@@ -60,19 +64,19 @@ const Universities = () => {
     return ['All Countries', ...Array.from(countrySet).sort()];
   };
 
-
   const handleSearch = (e) => {
     e.preventDefault();
+    // Sanitize the search term before applying filter
+    const sanitizedSearch = sanitizeInput(searchTerm);
+    setSearchTerm(sanitizedSearch);
     setFiltersApplied(true);
   };
-
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCountry('all');
     setFiltersApplied(false);
   };
-
 
   const filteredUniversities = universities.filter(university => {
     const matchesSearch =
@@ -111,7 +115,6 @@ const Universities = () => {
       </div>
     );
   }
-
 
   if (error) {
     return (
@@ -169,7 +172,7 @@ const Universities = () => {
                   placeholder="Search universities..."
                   className="block w-full pl-12 pr-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-800 rounded-l-lg md:rounded-r-none"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(sanitizeInput(e.target.value))}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
                 />
               </div>

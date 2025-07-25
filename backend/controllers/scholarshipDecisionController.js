@@ -1,5 +1,4 @@
 const ScholarshipApplication = require('../models/scholarshipApplication');
-const Notification = require('../models/notification');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -91,15 +90,6 @@ const acceptScholarshipApplication = async (req, res) => {
             .populate('user', 'full_name email')
             .populate('scholarship', 'scholarship_name')
             .populate('application');
-
-
-        await Notification.create({
-            user: scholarshipApp.user._id,
-            message: `Your scholarship application for ${scholarshipApp.scholarship?.scholarship_name || 'scholarship'} has been accepted.`,
-            relatedEntity: scholarshipApp._id,
-            onModel: 'Scholarship',
-            isRead: false
-        });
 
         res.json({
             success: true,

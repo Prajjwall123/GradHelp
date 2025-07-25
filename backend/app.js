@@ -19,7 +19,6 @@ const scholarshipDecisionRoutes = require('./routes/scholarshipDecisionRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const scholarshipApplicationRoutes = require('./routes/scholarshipApplicationRoutes');
 const authRoutes = require('./routes/authRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 
@@ -59,7 +58,6 @@ app.use("/api/application-decisions", applicationDecisionRoutes);
 app.use("/api/scholarship-decisions", scholarshipDecisionRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/scholarship-applications", scholarshipApplicationRoutes);
-app.use("/api/notifications", notificationRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);

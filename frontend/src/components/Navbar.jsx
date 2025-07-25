@@ -3,8 +3,6 @@ import { Menu, X, ChevronDown, User, LogIn, Bell, BookOpen, School, Info, Mail, 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import whiteLogo from "../assets/white_logo.png";
 import { isAuthenticated, getUserInfo, clearUserData } from "../utils/authHelper";
-import { fetchNotifications } from "../utils/notificationsHelper";
-import NotificationsModal from "./NotificationsModal";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -79,11 +77,6 @@ const Navbar = () => {
       name: 'My Applications',
       path: '/my-applications',
       icon: <FileText size={16} className="mr-2 text-gray-500" />
-    },
-    {
-      name: 'Notifications',
-      onClick: () => setNotificationsOpen(true),
-      icon: <Bell size={16} className="mr-2 text-gray-500" />
     },
     {
       name: 'Logout',
@@ -225,14 +218,6 @@ const Navbar = () => {
           </div>
         )}
       </div>
-
-      {/* Notifications Modal */}
-      <NotificationsModal
-        isOpen={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        notifications={notifications}
-        unreadCount={unreadCount}
-      />
     </nav>
   );
 };

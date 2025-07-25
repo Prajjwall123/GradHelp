@@ -1,5 +1,4 @@
 const Application = require('../models/application');
-const Notification = require('../models/notification');
 const fs = require('fs');
 const path = require('path');
 
@@ -51,15 +50,6 @@ const acceptApplication = async (req, res) => {
         application.acceptedAt = new Date();
         await application.save();
 
-
-        await Notification.create({
-            user: application.profile.user,
-            message: message || `Congratulations! Your application for ${application.course.name} has been accepted.`,
-            relatedEntity: application._id,
-            onModel: 'Application'
-        });
-
-
         const updatedApp = await Application.findById(applicationId)
             .populate('profile')
             .populate('course');
@@ -109,15 +99,6 @@ const rejectApplication = async (req, res) => {
         application.rejectionLetter = letterPath;
         application.rejectedAt = new Date();
         await application.save();
-
-
-        await Notification.create({
-            user: application.profile.user,
-            message: message || `We regret to inform you that your application for ${application.course.name} has been rejected.`,
-            relatedEntity: application._id,
-            onModel: 'Application'
-        });
-
 
         const updatedApp = await Application.findById(applicationId)
             .populate('profile')
