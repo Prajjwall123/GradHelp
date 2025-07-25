@@ -6,14 +6,12 @@ const getApplicationsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
 
-
         const profile = await Profile.findOne({ user: userId })
             .populate('user', 'full_name email');
 
         if (!profile) {
             return res.status(404).json({ message: "Profile not found for this user" });
         }
-
 
         const applications = await Application.find({ profile: profile._id })
             .populate({
@@ -25,9 +23,7 @@ const getApplicationsByUser = async (req, res) => {
             })
             .sort({ appliedAt: -1 });
 
-
         const profileData = profile.toObject();
-
 
         const applicationsWithProfile = applications.map(app => ({
             ...app.toObject(),
@@ -52,19 +48,16 @@ const createApplication = async (req, res) => {
     try {
         const { userId, courseId, intake } = req.body;
 
-
         const profile = await Profile.findOne({ user: userId });
 
         if (!profile) {
             return res.status(404).json({ message: "Profile not found for this user" });
         }
 
-
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
-
 
         const existingApplication = await Application.findOne({
             profile: profile._id,
@@ -153,11 +146,54 @@ const deleteApplication = async (req, res) => {
     }
 };
 
+const cleanSOPContent = (content) => {
+    if (!content || typeof content !== 'string') return '';
+
+    return content
+        .replace(/\$where/gi, '')
+        .replace(/\$ne/gi, '')
+        .replace(/\$gt/gi, '')
+        .replace(/\$lt/gi, '')
+        .replace(/\$in/gi, '')
+        .replace(/\$nin/gi, '')
+        .replace(/\$exists/gi, '')
+        .replace(/\$elemMatch/gi, '')
+        .replace(/\$regex/gi, '')
+        .replace(/\$options/gi, '')
+        .replace(/\$\{.*?\}/g, '')
+        .replace(/\$function/gi, '')
+        .replace(/\$accumulator/gi, '')
+        .replace(/\$addFields/gi, '')
+        .replace(/\$bucket/gi, '')
+        .replace(/\$collStats/gi, '')
+        .replace(/\$count/gi, '')
+        .replace(/\$facet/gi, '')
+        .replace(/\$geoNear/gi, '')
+        .replace(/\$graphLookup/gi, '')
+        .replace(/\$indexStats/gi, '')
+        .replace(/\$lookup/gi, '')
+        .replace(/\$match/gi, '')
+        .replace(/\$merge/gi, '')
+        .replace(/\$out/gi, '')
+        .replace(/\$planCacheStats/gi, '')
+        .replace(/\$project/gi, '')
+        .replace(/\$redact/gi, '')
+        .replace(/\$replaceRoot/gi, '')
+        .replace(/\$replaceWith/gi, '')
+        .replace(/\$sample/gi, '')
+        .replace(/\$search/gi, '')
+        .replace(/\$set/gi, '')
+        .replace(/\$unset/gi, '')
+        .replace(/\$unwind/gi, '')
+        .replace(/\$jsonSchema/gi, '')
+        .replace(/\$text/gi, '')
+        .replace(/\$type/gi, '');
+};
 
 const updateApplicationSOP = async (req, res) => {
     try {
         const { applicationId } = req.params;
-        const { sop, userId } = req.body;
+        let { sop, userId } = req.body;
 
         if (!sop) {
             return res.status(400).json({ message: "SOP content is required" });
@@ -173,14 +209,14 @@ const updateApplicationSOP = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-
         const profile = await Profile.findOne({ user: userId });
         if (!profile || !application.profile.equals(profile._id)) {
             return res.status(403).json({ message: "Not authorized to update this application" });
         }
 
+        const cleanedSOP = cleanSOPContent(sop);
 
-        application.sop = sop;
+        application.sop = cleanedSOP;
         application.status = 'under_review';
         application.updatedAt = Date.now();
 
@@ -196,7 +232,10 @@ const updateApplicationSOP = async (req, res) => {
         });
     } catch (error) {
         console.error("Error updating SOP:", error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            message: "An error occurred while updating the SOP",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 

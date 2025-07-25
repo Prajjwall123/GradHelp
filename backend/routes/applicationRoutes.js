@@ -10,21 +10,21 @@ const {
     updateApplicationSOP
 } = require("../controllers/applicationController");
 
+const { validateSOPUpdate } = require("../validations/applicationValidation");
 
 router.post("/", createApplication);
 
-
 router.get("/:id", getApplicationById);
-
 
 router.get("/user/:userId", getApplicationsByUser);
 
-
 router.patch("/:id/status", updateApplicationStatus);
 
-
-router.patch("/:applicationId/sop", updateApplicationSOP);
-
+router.patch(
+    "/:applicationId/sop",
+    validateSOPUpdate,
+    updateApplicationSOP
+);
 
 router.delete("/:id", deleteApplication);
 
