@@ -46,18 +46,45 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
+        let email, newPassword, otp;
 
+        if (req.body.email && typeof req.body.email === 'object') {
+            email = req.body.email.email;
+            newPassword = req.body.email.newPassword;
+            otp = req.body.email.otp;
+        } else {
+            ({ email, newPassword, otp } = req.body);
+        }
 
-        await OTP.verifyPasswordResetOTP(email, otp);
+        if (!email || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and new password are required',
+                receivedData: req.body 
+            });
+        }
 
+        if (typeof newPassword !== 'string' || newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be a string with at least 8 characters'
+            });
+        }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await User.findOneAndUpdate(
-            { email },
+
+        const updatedUser = await User.findOneAndUpdate(
+            { email: email.trim().toLowerCase() },
             { password: hashedPassword },
             { new: true }
         );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
 
         res.status(200).json({
             success: true,
@@ -66,10 +93,10 @@ const resetPassword = async (req, res) => {
 
     } catch (error) {
         console.error('Error in resetPassword:', error);
-        const statusCode = error.message.includes('Invalid or expired OTP') ? 400 : 500;
-        res.status(statusCode).json({
+        res.status(500).json({
             success: false,
-            message: error.message || 'Error resetting password'
+            message: 'Error resetting password. Please try again later.',
+            error: error.message
         });
     }
 };

@@ -3,21 +3,64 @@ import { useNavigate } from 'react-router-dom';
 import { requestPasswordReset } from '../../utils/passwordResetHelper';
 import logo from '../../assets/logo.png';
 
+export const sanitizeEmail = (email) => {
+    if (!email) return '';
+    const sanitized = email.replace(/<[^>]*>?/gm, '');
+    return sanitized.trim().toLowerCase();
+};
+
+const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+};
+
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
+    const handleEmailChange = (e) => {
+        const value = e.target.value;
+        if (value.length > 100) {
+            setError('Email is too long');
+            return;
+        }
+        setEmail(value);
+        setError('');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email) return;
+
+        const sanitizedEmail = sanitizeEmail(email);
+
+        if (!sanitizedEmail) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
+        if (!isValidEmail(sanitizedEmail)) {
+            setError('Please enter a valid email address');
+            return;
+        }
 
         setIsLoading(true);
-        const { success } = await requestPasswordReset(email);
-        setIsLoading(false);
+        setError('');
 
-        if (success) {
-            navigate('/reset-password', { state: { email } });
+        try {
+            const { success, error } = await requestPasswordReset(sanitizedEmail);
+            setIsLoading(false);
+
+            if (success) {
+                navigate('/reset-password', { state: { email: sanitizedEmail } });
+            } else {
+                setError(error || 'Failed to send reset email. Please try again.');
+            }
+        } catch (err) {
+            console.error('Password reset error:', err);
+            setError('An error occurred. Please try again later.');
+            setIsLoading(false);
         }
     };
 
@@ -28,6 +71,12 @@ const ForgotPassword = () => {
             <p className="mb-8 text-center text-gray-400 max-w-lg">
                 Enter your email address and we'll send you a code to reset your password.
             </p>
+
+            {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded w-full max-w-lg">
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="w-full max-w-lg">
                 <div className="mb-6">
@@ -40,29 +89,22 @@ const ForgotPassword = () => {
                         type="email"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={handleEmailChange}
+                        onBlur={() => setEmail(sanitizeEmail(email))}
                         className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
                         placeholder="Enter your email"
+                        maxLength={100}
+                        autoComplete="email"
                     />
                 </div>
 
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-black text-white py-3 rounded-lg font-semibold text-lg hover:bg-gray-900 transition mb-6"
+                    className={`w-full py-3 px-4 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                    {isLoading ? 'Sending...' : 'Send Reset Code'}
+                    {isLoading ? 'Sending...' : 'Send Reset Link'}
                 </button>
-
-                <div className="text-center">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/login')}
-                        className="text-gray-500 hover:text-gray-700 text-sm"
-                    >
-                        Back to Login
-                    </button>
-                </div>
             </form>
         </div>
     );

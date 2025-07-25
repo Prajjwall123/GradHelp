@@ -67,10 +67,29 @@ const forgotPasswordLimiter = rateLimit({
     }
 });
 
+const resetPasswordLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: JSON.stringify({
+        success: false,
+        message: 'Too many password reset attempts. Please try again after 1 hour.'
+    }),
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    handler: (req, res) => {
+        res.status(429).json({
+            success: false,
+            message: 'Too many password reset attempts. Please try again after 1 hour.'
+        });
+    }
+});
+
 module.exports = {
     generalLimiter,
     authLimiter,
     otpVerificationLimiter,
     formSubmitLimiter,
-    forgotPasswordLimiter
+    forgotPasswordLimiter,
+    resetPasswordLimiter
 };

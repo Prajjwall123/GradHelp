@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { forgotPassword, resetPassword } = require('../controllers/authController');
-const { forgotPasswordSchema, resetPasswordSchema } = require('../validations/userValidation');
+const { forgotPasswordSchema } = require('../validations/userValidation');
 const validate = require('../middleware/validation');
-const { forgotPasswordLimiter } = require('../middleware/rateLimiter');
+const { forgotPasswordLimiter, resetPasswordLimiter } = require('../middleware/rateLimiter');
 
 router.post('/forgot-password',
     forgotPasswordLimiter,
@@ -11,6 +11,9 @@ router.post('/forgot-password',
     forgotPassword
 );
 
-router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
+router.post('/reset-password',
+    resetPasswordLimiter,
+    resetPassword
+);
 
 module.exports = router;
