@@ -1,51 +1,40 @@
 import API from './api';
 
-
-const storeUserData = (data) => {
+const storeUserData = (token) => {
     try {
-        localStorage.setItem('auth', JSON.stringify(data));
+        localStorage.setItem('auth', JSON.stringify({ token }));
         return true;
     } catch (error) {
-        console.error('Error storing user data:', error);
+        console.error('Error storing auth token:', error);
         return false;
     }
 };
-
 
 const getUserData = () => {
     try {
         const data = localStorage.getItem('auth');
         return data ? JSON.parse(data) : null;
     } catch (error) {
-        console.error('Error getting user data:', error);
+        console.error('Error getting auth data:', error);
         return null;
     }
 };
-
 
 const getToken = () => {
     const data = getUserData();
     return data ? data.token : null;
 };
 
-
-const getUserInfo = () => {
-    const data = getUserData();
-    return data ? data.user : null;
-};
-
-
 const isAuthenticated = () => {
     return !!getToken();
 };
-
 
 const clearUserData = () => {
     try {
         localStorage.removeItem('auth');
         return true;
     } catch (error) {
-        console.error('Error clearing user data:', error);
+        console.error('Error clearing auth data:', error);
         return false;
     }
 };
@@ -55,21 +44,17 @@ const loginUser = async (credentials) => {
         console.log("Logging in with credentials:", credentials);
         const response = await API.post("/users/login", credentials);
 
-
-        storeUserData(response.data);
-
+        storeUserData(response.data.token);
 
         const isNewUser = localStorage.getItem('isNewUser') === 'true';
-
-
         localStorage.removeItem('isNewUser');
 
         return {
-            ...response.data,
+            success: response.data.success,
+            message: response.data.message,
             isNewUser
         };
     } catch (error) {
-
         const errorWithStatus = new Error(error.response?.data?.message || "Network error");
         errorWithStatus.status = error.response?.status;
         errorWithStatus.response = error.response;
@@ -93,19 +78,16 @@ const registerUser = async (userData) => {
 const verifyOTP = async (payload) => {
     try {
         const response = await API.post("/users/verify-otp", payload);
-        const verifiedUser = response.data;
 
-
-        if (verifiedUser && verifiedUser.token) {
-            storeUserData(verifiedUser);
-
-            localStorage.setItem('isNewUser', 'true');
+        if (response.data.success && response.data.token) {
+            storeUserData(response.data.token);
+            return response.data;
         }
 
-        return verifiedUser;
+        return response.data;
     } catch (error) {
-        console.error(error.response ? error.response.data : error.message);
-        throw error.response ? error.response.data : { message: "Network error" };
+        console.error("Error verifying OTP:", error);
+        throw error;
     }
 };
 
@@ -113,10 +95,8 @@ export {
     clearUserData,
     getToken,
     getUserData,
-    getUserInfo,
     isAuthenticated,
     loginUser,
     registerUser,
-    storeUserData,
     verifyOTP
 };

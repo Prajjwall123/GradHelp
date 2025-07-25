@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { getProfile, updateProfile } = require('../controllers/profileController');
 const { validateProfile } = require('../validations/profileValidation');
+const auth = require('../middleware/auth');
 
 const baseUploadsDir = path.join(__dirname, '../uploads');
 const transcriptsDir = path.join(baseUploadsDir, 'transcripts');
@@ -63,20 +64,12 @@ const handleUploadErrors = (err, req, res, next) => {
     next();
 };
 
-router.get('/:userId', getProfile);
-router.patch('/:userId',
-    (req, res, next) => {
-        upload(req, res, (err) => {
-            if (err) {
-                return res.status(400).json({
-                    success: false,
-                    message: err.message || 'File upload error',
-                    error: process.env.NODE_ENV === 'development' ? err.stack : {}
-                });
-            }
-            next();
-        });
-    },
+router.use(auth);
+
+router.get('/me', getProfile);
+router.patch('/me',
+    upload,
+    handleUploadErrors,
     validateProfile,
     updateProfile
 );

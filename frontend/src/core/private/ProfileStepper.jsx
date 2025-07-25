@@ -9,7 +9,7 @@ import EducationStep from './profile-steps/EducationStep';
 import VisaStep from './profile-steps/VisaStep';
 import EnglishTestStep from './profile-steps/EnglishTestStep';
 import { updateProfile, getProfile } from '../../utils/profileHelper';
-import { getUserInfo } from '../../utils/authHelper';
+import { isAuthenticated } from '../../utils/authHelper';
 import sanitizeInput from '../../utils/sanitizeInput';
 
 // Profile image
@@ -36,6 +36,9 @@ const ProfileStepper = () => {
         city: '',
         date_of_birth: '',
         first_language: '',
+        full_name: '',
+        email: '',
+        date_of_birth: '',
 
         // Education
         institution_name: '',
@@ -49,82 +52,57 @@ const ProfileStepper = () => {
         // Visa
         visa_application_country: '',
         visa_type: '',
-        application_date: '',
-        status: '',
         currently_hold_a_visa: false,
         previous_visa_application: false,
-        application_country: '',
-        application_year: '',
+        visa_refusal: false,
+        visa_refusal_details: '',
+        visa_history: [],
 
-        // English test
-        english_test: {
-            test_type: '',
+        // English Test
+        english_test_type: '',
+        english_test_scores: {
+            listening: '',
             reading: '',
             writing: '',
-            speaking: '',
-            listening: '',
-            overall_score: '',
-            exam_date: ''
+            speaking: ''
         },
+        test_date: '',
+        has_taken_test: false,
+        no_test_planned: false,
 
-        // User info
-        full_name: '',
-        email: ''
+        // File paths
+        education_transcript: '',
+        english_transcript: ''
     });
 
-    // Check if user is coming from login page
-    const isFromLogin = location.state?.fromLogin === true;
-
-    // Show welcome toast if user is coming from login page
     useEffect(() => {
-        if (location.state?.fromLogin && !hasShownWelcome.current) {
-            hasShownWelcome.current = true;
+        const checkAuth = async () => {
+            if (!isAuthenticated()) {
+                navigate('/login');
+                return false;
+            }
+            return true;
+        };
 
-            // Show welcome toast
-            setTimeout(() => {
-                toast.info('Please enter your information', {
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
-
-                setTimeout(() => {
-                    toast.info('This information will be used in your university applications', {
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                    });
-                }, 100);
-            }, 100);
-        }
-    }, [location.state]);
-
-    // Fetch profile data from API
-    useEffect(() => {
         const fetchProfile = async () => {
+            if (!(await checkAuth())) return;
+
             try {
-                setIsLoading(true);
-                const user = getUserInfo();
-                if (!user?._id) {
-                    throw new Error('User not authenticated');
-                }
+                const response = await getProfile();
+                if (response && response.success && response.profile) {
+                    const { profile } = response;
 
-                const response = await getProfile(user._id);
-                if (response?.data) {
-                    const profile = response.data;
-
-                    // Format the data to match our form structure
-                    const formattedData = {
-                        // Personal Info
+                    // Map the profile data to match the form structure
+                    const mappedData = {
+                        // Personal info
                         gender: profile.gender || '',
                         address: profile.address || '',
                         city: profile.city || '',
-                        date_of_birth: profile.date_of_birth ? profile.date_of_birth.split('T')[0] : '',
+                        date_of_birth: profile.date_of_birth || '',
                         first_language: profile.first_language || '',
+                        full_name: profile.full_name || '',
+                        email: profile.email || '',
+                        date_of_birth: profile.date_of_birth || '',
 
                         // Education
                         institution_name: profile.institution_name || '',
@@ -138,47 +116,41 @@ const ProfileStepper = () => {
                         // Visa
                         visa_application_country: profile.visa_application_country || '',
                         visa_type: profile.visa_type || '',
-                        application_date: profile.application_date ? profile.application_date.split('T')[0] : '',
-                        status: profile.status || '',
                         currently_hold_a_visa: profile.currently_hold_a_visa || false,
                         previous_visa_application: profile.previous_visa_application || false,
-                        application_country: profile.application_country || '',
-                        application_year: profile.application_year || '',
+                        visa_refusal: profile.visa_refusal || false,
+                        visa_refusal_details: profile.visa_refusal_details || '',
+                        visa_history: profile.visa_history || [],
 
                         // English Test
-                        english_test: {
-                            test_type: profile.english_test?.test_type || '',
+                        english_test_type: profile.english_test?.test_type || '',
+                        english_test_scores: {
+                            listening: profile.english_test?.listening || '',
                             reading: profile.english_test?.reading || '',
                             writing: profile.english_test?.writing || '',
-                            speaking: profile.english_test?.speaking || '',
-                            listening: profile.english_test?.listening || '',
-                            overall_score: profile.english_test?.overall_score || '',
-                            exam_date: profile.english_test?.exam_date
-                                ? profile.english_test.exam_date.split('T')[0]
-                                : ''
+                            speaking: profile.english_test?.speaking || ''
                         },
+                        test_date: profile.english_test?.exam_date || '',
+                        has_taken_test: !!(profile.english_test?.test_type),
+                        no_test_planned: false, // Default value
 
-                        // User info
-                        full_name: profile.user?.full_name || profile.full_name || '',
-                        email: profile.user?.email || profile.email || ''
+                        // File paths
+                        education_transcript: profile.education_transcript || '',
+                        english_transcript: profile.english_test?.transcript || ''
                     };
 
-                    console.log('Setting form data:', formattedData);
-                    setFormData(formattedData);
+                    setFormData(mappedData);
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
-                // Don't show error toast if profile is not found
-                if (error.response?.status !== 404) {
-                    toast.error(error.message || 'Failed to fetch profile');
-                }
+                toast.error('Failed to load profile data');
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchProfile();
-    }, []);
+    }, [navigate]);
 
     // Save form data to API
     const saveFormData = async (data) => {

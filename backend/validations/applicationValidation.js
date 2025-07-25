@@ -111,46 +111,52 @@ const updateSOPSchema = Joi.object({
     sop: Joi.custom(sopValidation).required().messages({
         'any.required': 'SOP content is required',
         'any.invalid': 'Invalid SOP content'
-    }),
-    userId: Joi.string().custom(noSqlInjectionValidation).required().messages({
-        'any.required': 'User ID is required',
-        'string.base': 'User ID must be a string',
-        'any.invalid': 'Invalid user ID: potential security issue detected'
     })
-}).options({ stripUnknown: true });
+});
 
-const validateSOPUpdate = (req, res, next) => {
-    // First, check for MongoDB operators in the raw request body
-    if (hasMongoOperators(req.body)) {
-        return res.status(400).json({
+const validateSOPUpdate = async (req, res, next) => {
+    try {
+        // Get userId from JWT
+        const userId = req.user._id;
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required',
+                errors: [{
+                    field: 'userId',
+                    message: 'User ID is required'
+                }]
+            });
+        }
+
+        // Validate SOP content
+        const { error } = updateSOPSchema.validate(req.body);
+        if (error) {
+            const validationError = {
+                success: false,
+                message: 'Validation error',
+                errors: []
+            };
+
+            error.details.forEach(detail => {
+                validationError.errors.push({
+                    field: detail.path[0],
+                    message: detail.message
+                });
+            });
+
+            return res.status(400).json(validationError);
+        }
+
+        next();
+    } catch (error) {
+        console.error('Error validating SOP update:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Invalid request: potential security issue detected',
-            errors: [{
-                field: 'request',
-                message: 'Request contains potentially dangerous content'
-            }]
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : {}
         });
     }
-
-    const { error, value } = updateSOPSchema.validate(req.body, {
-        abortEarly: false,
-        allowUnknown: false
-    });
-
-    if (error) {
-        const errorMessage = error.details.map(detail => detail.message).join('; ');
-        return res.status(400).json({
-            success: false,
-            message: `Validation error: ${errorMessage}`,
-            errors: error.details.map(detail => ({
-                field: detail.path.join('.'),
-                message: detail.message
-            }))
-        });
-    }
-
-    req.body = value;
-    next();
 };
 
 module.exports = {

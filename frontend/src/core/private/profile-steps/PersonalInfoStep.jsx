@@ -1,10 +1,25 @@
 import React from 'react';
 import { User, Mail, Calendar, MapPin, Home } from 'lucide-react';
+import { toast } from 'react-toastify';
 import sanitizeInput from '../../../utils/sanitizeInput';
 
 const PersonalInfoStep = ({ formData, handleChange }) => {
     const [showEmailError, setShowEmailError] = React.useState(false);
     const [dateError, setDateError] = React.useState('');
+
+    // Format date for input field (YYYY-MM-DD)
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            // Check if date is valid
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return '';
+        }
+    };
 
     const handleTextInputChange = (e) => {
         const { name, value } = e.target;
@@ -25,15 +40,15 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
             ...e,
             target: {
                 ...e.target,
-                name, // Make sure name is included
+                name,
                 value: sanitizedValue
             },
             currentTarget: {
                 ...e.currentTarget,
-                name, // Also include name in currentTarget
+                name,
                 value: sanitizedValue
             },
-            persist: () => { } // Add empty persist method to prevent errors
+            persist: () => { }
         };
 
         handleChange(syntheticEvent);
@@ -41,6 +56,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
 
     const handleEmailFocus = (e) => {
         e.preventDefault();
+        setShowEmailError(true);
         toast.error('Cannot update the email you registered with', {
             position: "top-right",
             autoClose: 3000,
@@ -64,7 +80,22 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
             setDateError('You must be at least 18 years old');
         } else {
             setDateError('');
-            handleChange(e);
+            // Format the date properly before updating the form data
+            const formattedDate = selectedDate.toISOString();
+            const syntheticEvent = {
+                ...e,
+                target: {
+                    ...e.target,
+                    name: 'date_of_birth',
+                    value: formattedDate
+                },
+                currentTarget: {
+                    ...e.currentTarget,
+                    name: 'date_of_birth',
+                    value: formattedDate
+                }
+            };
+            handleChange(syntheticEvent);
         }
     };
 
@@ -132,7 +163,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                             <input
                                 type="date"
                                 name="date_of_birth"
-                                value={formData.date_of_birth || ''}
+                                value={formatDateForInput(formData.date_of_birth)}
                                 onChange={handleDateChange}
                                 className={`block w-full pl-8 pr-3 py-2 text-xs text-gray-700 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent`}
                                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
@@ -203,7 +234,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                             value={formData.city || ''}
                             onChange={handleTextInputChange}
                             className="block w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="New York"
+                            placeholder="Enter your city"
                             required
                         />
                     </div>

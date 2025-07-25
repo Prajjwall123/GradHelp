@@ -99,7 +99,6 @@ const profileSchema = Joi.object({
     ...educationRules,
     ...visaRules,
     ...englishTestRules,
-    user: Joi.string().custom(objectId, 'ObjectId').required()
 }).options({ allowUnknown: true, stripUnknown: true });
 
 const validateProfile = (req, res, next) => {
@@ -107,7 +106,6 @@ const validateProfile = (req, res, next) => {
     const dataToValidate = {
         ...req.body,
         ...(req.files || {}),
-        user: req.params.userId
     };
 
     // Convert file objects to filenames if they exist

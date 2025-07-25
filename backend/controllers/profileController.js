@@ -3,36 +3,30 @@ const fs = require('fs');
 const path = require('path');
 const { Types } = require('mongoose');
 
+// Helper function to clean up old files
 const cleanupOldFile = async (userId, fieldName) => {
     try {
-        if (!Types.ObjectId.isValid(userId)) {
-            throw new Error('Invalid user ID');
-        }
+        const profile = await Profile.findOne({ user: userId });
+        if (!profile) return;
 
-        const existingProfile = await Profile.findOne({ user: userId });
-        if (existingProfile?.[fieldName]) {
-            const oldFilePath = path.join(__dirname, `../uploads/transcripts/${fieldName}`, existingProfile[fieldName]);
-            if (fs.existsSync(oldFilePath)) {
-                fs.unlinkSync(oldFilePath);
+        const oldFilePath = profile[fieldName];
+        if (oldFilePath) {
+            const fullPath = path.join(__dirname, '..', oldFilePath);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
             }
         }
     } catch (error) {
-        console.error('Error cleaning up old file:', error);
-        throw error;
+        console.error(`Error cleaning up old ${fieldName}:`, error);
     }
 };
 
 const createProfile = async (userId, profileData = {}) => {
     try {
-        if (!Types.ObjectId.isValid(userId)) {
-            throw new Error('Invalid user ID');
-        }
-
         const profile = new Profile({
             user: userId,
             ...profileData
         });
-
         await profile.save();
         return profile;
     } catch (error) {
@@ -48,7 +42,7 @@ const getProfile = async (req, res) => {
         if (!Types.ObjectId.isValid(userId)) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid user ID'
+                message: 'Invalid user ID format'
             });
         }
 
@@ -57,22 +51,24 @@ const getProfile = async (req, res) => {
             .lean();
 
         if (!profile) {
-            return res.status(404).json({
-                success: false,
-                message: "Profile not found"
+            // Create a default profile if none exists
+            const newProfile = await createProfile(userId);
+            return res.status(200).json({
+                success: true,
+                profile: newProfile
             });
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
-            data: profile
+            profile
         });
     } catch (error) {
         console.error('Error getting profile:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'Server error while fetching profile',
+            error: process.env.NODE_ENV === 'development' ? error.message : {}
         });
     }
 };
@@ -80,80 +76,60 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const userId = req.user._id;
+        const updateData = { ...req.body };
 
-        if (!Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user ID'
-            });
-        }
-
-        const updates = { ...req.validatedData };
-
-        if (req.files?.education_transcript) {
-            try {
+        // Handle file uploads
+        if (req.files) {
+            if (req.files['education_transcript']) {
                 await cleanupOldFile(userId, 'education_transcript');
-                updates.education_transcript = req.files.education_transcript[0].filename;
-            } catch (error) {
-                console.error('Error handling education transcript:', error);
+                updateData.education_transcript = req.files['education_transcript'][0].path;
             }
-        }
-
-        if (req.files?.english_transcript) {
-            try {
+            if (req.files['english_transcript']) {
                 await cleanupOldFile(userId, 'english_transcript');
-                updates.english_transcript = req.files.english_transcript[0].filename;
-            } catch (error) {
-                console.error('Error handling English test transcript:', error);
+                updateData.english_test = updateData.english_test || {};
+                updateData.english_test.transcript = req.files['english_transcript'][0].path;
             }
         }
 
+        // Update profile
         const profile = await Profile.findOneAndUpdate(
             { user: userId },
-            { $set: updates },
-            {
-                new: true,
-                runValidators: true,
-                context: 'query'
-            }
-        );
+            { $set: updateData },
+            { new: true, runValidators: true, context: 'query' }
+        ).populate('user', 'full_name email');
 
         if (!profile) {
-            const newProfile = await createProfile(userId, updates);
+            // Create profile if it doesn't exist
+            const newProfile = await createProfile(userId, updateData);
             return res.status(201).json({
                 success: true,
                 message: 'Profile created successfully',
-                data: newProfile
+                profile: newProfile
             });
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
-            data: profile
+            profile
         });
     } catch (error) {
         console.error('Error updating profile:', error);
 
-        if (req.files) {
-            Object.values(req.files).forEach(fileArray => {
-                fileArray.forEach(file => {
-                    try {
-                        const filePath = path.join(__dirname, `../uploads/transcripts/${file.fieldname}`, file.filename);
-                        if (fs.existsSync(filePath)) {
-                            fs.unlinkSync(filePath);
-                        }
-                    } catch (fileError) {
-                        console.error('Error cleaning up file:', fileError);
-                    }
-                });
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Validation error',
+                errors: messages
             });
         }
 
         res.status(500).json({
             success: false,
-            message: 'Server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'Server error while updating profile',
+            error: process.env.NODE_ENV === 'development' ? error.message : {}
         });
     }
 };

@@ -104,12 +104,7 @@ const verifyOTP = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "Registration successful",
-            token,
-            user: {
-                _id: user._id,
-                full_name: user.full_name,
-                email: user.email
-            }
+            token
         });
     } catch (error) {
         console.error("Error in OTP verification:", error);

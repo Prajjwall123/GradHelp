@@ -4,7 +4,7 @@ import { ArrowLeft, BookOpen, Check, Calendar, ExternalLink, GraduationCap, Cloc
 import { getCourseById } from '../../utils/coursesHelper';
 import { getScholarshipsByUniversityId, applyForScholarship } from '../../utils/scholarshipHelper';
 import { createApplication } from '../../utils/applicationHelper';
-import { isAuthenticated, getUserInfo } from '../../utils/authHelper';
+import { isAuthenticated } from '../../utils/authHelper';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Chatbot from '../../components/Chatbot';
@@ -261,7 +261,6 @@ const ApplicationModal = ({ course, onClose, onSubmit }) => {
 const ScholarshipApplicationModal = ({ scholarship, course, onClose, onSuccess }) => {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const currentUser = getUserInfo();
 
   const handleSubmit = async () => {
     if (!agreedToTerms) {
@@ -271,7 +270,7 @@ const ScholarshipApplicationModal = ({ scholarship, course, onClose, onSuccess }
 
     try {
       setIsSubmitting(true);
-      await applyForScholarship(scholarship._id, currentUser._id);
+      await applyForScholarship(scholarship._id);
       toast.success('Scholarship application submitted successfully!');
       onSuccess();
       onClose();
@@ -395,12 +394,15 @@ const CourseDetail = () => {
   const [showScholarshipModal, setShowScholarshipModal] = useState(false);
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [appliedScholarships, setAppliedScholarships] = useState([]);
-  const currentUser = getUserInfo();
+  const [isAuth, setIsAuth] = useState(false);
 
+  useEffect(() => {
+    setIsAuth(isAuthenticated());
+  }, []);
 
   const handleAuthRequired = (e, action) => {
     e?.preventDefault();
-    if (!isAuthenticated()) {
+    if (!isAuth) {
       const redirectPath = `/login?redirect=${encodeURIComponent(location.pathname)}`;
       toast.info('Please login to continue');
       navigate(redirectPath);
@@ -409,13 +411,11 @@ const CourseDetail = () => {
     return true;
   };
 
-
   const handleViewDetails = (e, scholarshipName) => {
     if (handleAuthRequired(e)) {
       console.log('View details for:', scholarshipName);
     }
   };
-
 
   const handleApplyNow = (e) => {
     if (handleAuthRequired(e)) {
@@ -423,13 +423,9 @@ const CourseDetail = () => {
     }
   };
 
-
   const handleApplicationSubmit = async (applicationData) => {
     try {
-
       await createApplication(course._id, applicationData.intake);
-
-
       toast.success('Application created successfully!', {
         position: 'top-right',
         autoClose: 3000,
@@ -438,16 +434,10 @@ const CourseDetail = () => {
         pauseOnHover: true,
         draggable: true,
       });
-
-
       setShowApplicationModal(false);
-
-
       navigate('/my-applications');
-
     } catch (error) {
       console.error('Error creating application:', error);
-
       toast.error(error.response?.data?.message || 'Failed to create application. Please try again.', {
         position: 'top-right',
         autoClose: 5000,
@@ -459,6 +449,10 @@ const CourseDetail = () => {
   };
 
   const handleScholarshipApply = (scholarship) => {
+    if (!isAuth) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
     setSelectedScholarship(scholarship);
     setShowScholarshipModal(true);
   };
@@ -474,7 +468,6 @@ const CourseDetail = () => {
         const courseData = await getCourseById(id);
         setCourse(courseData);
         console.log('Course data:', courseData);
-
 
         if (courseData.university?._id) {
           console.log('Fetching scholarships for university:', courseData.university._id);
@@ -499,7 +492,6 @@ const CourseDetail = () => {
     try {
       const response = await getScholarshipsByUniversityId(universityId);
       console.log('Scholarships response:', response);
-
 
       const scholarshipsData = Array.isArray(response) ? response : [];
 
@@ -555,7 +547,6 @@ const CourseDetail = () => {
       </div>
     );
   }
-
 
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';

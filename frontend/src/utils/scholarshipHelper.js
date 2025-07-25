@@ -1,6 +1,5 @@
 import API from './api';
 
-
 const getScholarshipById = async (id) => {
     try {
         const response = await API.get(`/scholarships/${id}`);
@@ -10,7 +9,6 @@ const getScholarshipById = async (id) => {
         throw error;
     }
 };
-
 
 const getScholarshipsByIds = async (ids) => {
     if (!ids || ids.length === 0) return [];
@@ -26,13 +24,12 @@ const getScholarshipsByIds = async (ids) => {
     }
 };
 
-
 const getScholarshipsByUniversityId = async (universityId) => {
     try {
         console.log(`Fetching scholarships for university ID: ${universityId}`);
         const response = await API.get(`/scholarships/university/${universityId}`);
         console.log('Scholarships API response:', response);
-        
+
         return Array.isArray(response.data?.scholarships) ? response.data.scholarships : [];
     } catch (error) {
         console.error(`Error fetching scholarships for university ${universityId}:`, {
@@ -44,11 +41,10 @@ const getScholarshipsByUniversityId = async (universityId) => {
     }
 };
 
-const applyForScholarship = async (scholarshipId, userId) => {
+const applyForScholarship = async (scholarshipId) => {
     try {
         const response = await API.post('/scholarship-applications', {
-            scholarshipId,
-            userId
+            scholarshipId
         });
         return response.data;
     } catch (error) {
@@ -57,9 +53,9 @@ const applyForScholarship = async (scholarshipId, userId) => {
     }
 };
 
-const getUserScholarshipApplications = async (userId) => {
+const getUserScholarshipApplications = async () => {
     try {
-        const response = await API.get(`/scholarship-applications/me?userId=${userId}`);
+        const response = await API.get('/scholarship-applications/me');
         return response.data?.data || [];
     } catch (error) {
         console.error('Error fetching scholarship applications:', error);

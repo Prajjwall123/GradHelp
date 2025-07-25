@@ -4,7 +4,7 @@ import { Edit, FileText, Loader2, Calendar, BookOpen, Building2, Clock, Search, 
 import { getUserApplications, cancelApplication } from '../../utils/applicationHelper';
 import { getUserScholarshipApplications } from '../../utils/scholarshipHelper';
 import { toast } from 'react-toastify';
-import { getUserInfo } from '../../utils/authHelper';
+import { isAuthenticated } from '../../utils/authHelper';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Chatbot from '../../components/Chatbot';
@@ -37,15 +37,27 @@ const Applications = () => {
     const [applicationToCancel, setApplicationToCancel] = useState(null);
     const [isCancelling, setIsCancelling] = useState(false);
     const navigate = useNavigate();
-    const currentUser = getUserInfo();
+    const [isAuth, setIsAuth] = useState(false);
 
     useEffect(() => {
+        const checkAuth = () => {
+            const authStatus = isAuthenticated();
+            setIsAuth(authStatus);
+            if (!authStatus) {
+                navigate('/login');
+                return false;
+            }
+            return true;
+        };
+
         const fetchData = async () => {
+            if (!checkAuth()) return;
+
             try {
                 setLoading(true);
                 const [courseApps, scholarshipData] = await Promise.all([
                     getUserApplications(),
-                    currentUser?._id ? getUserScholarshipApplications(currentUser._id) : []
+                    getUserScholarshipApplications()
                 ]);
 
                 setApplications(courseApps);
@@ -59,7 +71,7 @@ const Applications = () => {
         };
 
         fetchData();
-    }, [currentUser?._id]);
+    }, [navigate]);
 
     const handleCancelApplication = (applicationId) => {
         setApplicationToCancel(applicationId);
