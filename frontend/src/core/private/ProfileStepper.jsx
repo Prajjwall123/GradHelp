@@ -63,8 +63,13 @@ const ProfileStepper = () => {
             writing: '',
             speaking: '',
             listening: '',
+            overall_score: '',
             exam_date: ''
         },
+
+        // User info
+        full_name: '',
+        email: ''
     });
 
     // Check if user is coming from login page
@@ -108,39 +113,64 @@ const ProfileStepper = () => {
                     throw new Error('User not authenticated');
                 }
 
-                const profile = await getProfile(user._id);
-                if (profile) {
-                    // Remove passport number from profile data
-                    const { passport_number, ...profileWithoutPassport } = profile;
+                const response = await getProfile(user._id);
+                if (response?.data) {
+                    const profile = response.data;
 
-                    // Map profile data to form data
-                    const mappedData = {
-                        ...profileWithoutPassport,
-                        // Map user data
-                        fullName: profile.user?.full_name || '',
-                        email: profile.user?.email || '',
-                        // Format date fields
+                    // Format the data to match our form structure
+                    const formattedData = {
+                        // Personal Info
+                        gender: profile.gender || '',
+                        address: profile.address || '',
+                        city: profile.city || '',
                         date_of_birth: profile.date_of_birth ? profile.date_of_birth.split('T')[0] : '',
+                        first_language: profile.first_language || '',
+
+                        // Education
+                        institution_name: profile.institution_name || '',
+                        field_of_study: profile.field_of_study || '',
+                        highest_education_level: profile.highest_education_level || '',
+                        graduation_year: profile.graduation_year || '',
+                        final_grade: profile.final_grade || '',
+                        currently_enrolled: profile.currently_enrolled || false,
+                        graduation_status: profile.graduation_status || false,
+
+                        // Visa
+                        visa_application_country: profile.visa_application_country || '',
+                        visa_type: profile.visa_type || '',
                         application_date: profile.application_date ? profile.application_date.split('T')[0] : '',
+                        status: profile.status || '',
+                        currently_hold_a_visa: profile.currently_hold_a_visa || false,
+                        previous_visa_application: profile.previous_visa_application || false,
+                        application_country: profile.application_country || '',
+                        application_year: profile.application_year || '',
+
+                        // English Test
                         english_test: {
-                            ...(profile.english_test || {}),
-                            // Format exam date
+                            test_type: profile.english_test?.test_type || '',
+                            reading: profile.english_test?.reading || '',
+                            writing: profile.english_test?.writing || '',
+                            speaking: profile.english_test?.speaking || '',
+                            listening: profile.english_test?.listening || '',
+                            overall_score: profile.english_test?.overall_score || '',
                             exam_date: profile.english_test?.exam_date
                                 ? profile.english_test.exam_date.split('T')[0]
-                                : null
-                        }
+                                : ''
+                        },
+
+                        // User info
+                        full_name: profile.user?.full_name || profile.full_name || '',
+                        email: profile.user?.email || profile.email || ''
                     };
 
-                    setFormData(prev => ({
-                        ...prev,
-                        ...mappedData
-                    }));
+                    console.log('Setting form data:', formattedData);
+                    setFormData(formattedData);
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
                 // Don't show error toast if profile is not found
                 if (error.response?.status !== 404) {
-                    // toast.error(error.message || 'Failed to fetch profile');
+                    toast.error(error.message || 'Failed to fetch profile');
                 }
             } finally {
                 setIsLoading(false);

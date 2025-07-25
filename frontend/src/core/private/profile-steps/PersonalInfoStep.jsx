@@ -86,8 +86,8 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
                             </div>
                             <input
                                 type="text"
-                                name="fullName"
-                                value={formData.fullName || ''}
+                                name="full_name"
+                                value={formData.full_name || ''}
                                 onChange={handleTextInputChange}
                                 className="block w-full pl-8 pr-3 py-2 text-xs border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="John Doe"

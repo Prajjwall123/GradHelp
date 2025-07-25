@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CheckCircle, Clock, Mail, Phone, MapPin, BookOpen, Globe, FileText, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,32 +5,32 @@ import { useNavigate } from 'react-router-dom';
 const CompletionStep = ({ formData }) => {
     const navigate = useNavigate();
 
-    
+    // Calculate completion percentage
     const calculateCompletion = () => {
         let completedFields = 0;
-        const totalFields = 20; 
+        const totalFields = 20;
 
-        
-        if (formData.fullName) completedFields += 1;
+        // Personal Info
+        if (formData.full_name) completedFields += 1;
         if (formData.email) completedFields += 1;
         if (formData.phone) completedFields += 1;
         if (formData.address) completedFields += 1;
 
-        
-        if (formData.educationLevel) completedFields += 1;
+        // Education
+        if (formData.education_level) completedFields += 1;
         if (formData.institution) completedFields += 1;
 
-        
-        if (formData.visaStatus) completedFields += 1;
+        // Visa
+        if (formData.visa_status) completedFields += 1;
 
-        
-        if (formData.englishTest?.testType) completedFields += 1;
+        // English Test
+        if (formData.english_test?.test_type) completedFields += 1;
 
-        
+        // Documents
         if (formData.documents?.passport) completedFields += 1;
-        if (formData.documents?.academicTranscripts) completedFields += 1;
+        if (formData.documents?.academic_transcripts) completedFields += 1;
 
-        
+        // Recommendation Letters
 
         return Math.round((completedFields / totalFields) * 100);
     };
@@ -47,7 +46,7 @@ const CompletionStep = ({ formData }) => {
     const getNextSteps = () => {
         const steps = [];
 
-        if (!formData.englishTest?.testType) {
+        if (!formData.english_test?.test_type) {
             steps.push({
                 title: 'Add English Test Scores',
                 description: 'Required for university applications',
@@ -65,7 +64,7 @@ const CompletionStep = ({ formData }) => {
             });
         }
 
-        if (!formData.visaStatus) {
+        if (!formData.visa_status) {
             steps.push({
                 title: 'Complete Visa Information',
                 description: 'Help us understand your visa requirements',
@@ -138,7 +137,7 @@ const CompletionStep = ({ formData }) => {
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     <div className="space-y-1">
                                         <div className="flex items-center">
-                                            <span className="font-medium">{formData.fullName || 'Not provided'}</span>
+                                            <span className="font-medium">{formData.full_name || 'Not provided'}</span>
                                         </div>
                                         <div className="flex items-center text-sm text-gray-500">
                                             <Mail className="h-4 w-4 mr-1" />
@@ -167,12 +166,12 @@ const CompletionStep = ({ formData }) => {
                                     Education
                                 </dt>
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {formData.educationLevel || formData.institution ? (
+                                    {formData.education_level || formData.institution ? (
                                         <div className="space-y-1">
-                                            {formData.educationLevel && (
+                                            {formData.education_level && (
                                                 <div>
                                                     <span className="font-medium">Level: </span>
-                                                    {formData.educationLevel}
+                                                    {formData.education_level}
                                                 </div>
                                             )}
                                             {formData.institution && (
@@ -195,16 +194,16 @@ const CompletionStep = ({ formData }) => {
                                     English Proficiency
                                 </dt>
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {formData.englishTest?.testType ? (
+                                    {formData.english_test?.test_type ? (
                                         <div>
                                             <div>
                                                 <span className="font-medium">Test: </span>
-                                                {formData.englishTest.testType}
+                                                {formData.english_test.test_type}
                                             </div>
-                                            {formData.englishTest.overallScore && (
+                                            {formData.english_test.overall_score && (
                                                 <div>
                                                     <span className="font-medium">Score: </span>
-                                                    {formData.englishTest.overallScore}
+                                                    {formData.english_test.overall_score}
                                                 </div>
                                             )}
                                         </div>
@@ -231,14 +230,14 @@ const CompletionStep = ({ formData }) => {
                                         </div>
                                         <div className="flex items-center">
                                             <CheckCircle
-                                                className={`h-5 w-5 mr-2 ${formData.documents?.academicTranscripts ? 'text-green-500' : 'text-gray-300'
+                                                className={`h-5 w-5 mr-2 ${formData.documents?.academic_transcripts ? 'text-green-500' : 'text-gray-300'
                                                     }`}
                                             />
                                             <span>Academic Transcripts</span>
                                         </div>
                                         <div className="flex items-center">
                                             <CheckCircle
-                                                className={`h-5 w-5 mr-2 ${formData.documents?.recommendationLetters ? 'text-green-500' : 'text-gray-300'
+                                                className={`h-5 w-5 mr-2 ${formData.documents?.recommendation_letters ? 'text-green-500' : 'text-gray-300'
                                                     }`}
                                             />
                                             <span>Recommendation Letters</span>

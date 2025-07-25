@@ -4,11 +4,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { getProfile, updateProfile } = require('../controllers/profileController');
-
+const { validateProfile } = require('../validations/profileValidation');
 
 const baseUploadsDir = path.join(__dirname, '../uploads');
 const transcriptsDir = path.join(baseUploadsDir, 'transcripts');
-
 
 [baseUploadsDir, transcriptsDir].forEach(dir => {
     if (!fs.existsSync(dir)) {
@@ -16,10 +15,8 @@ const transcriptsDir = path.join(baseUploadsDir, 'transcripts');
     }
 });
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-
         const dest = path.join(transcriptsDir, file.fieldname);
         if (!fs.existsSync(dest)) {
             fs.mkdirSync(dest, { recursive: true });
@@ -55,18 +52,33 @@ const upload = multer({
     { name: 'english_transcript', maxCount: 1 }
 ]);
 
-
 const handleUploadErrors = (err, req, res, next) => {
-    if (err instanceof multer.MulterError) {
-        return res.status(400).json({ message: err.message });
-    } else if (err) {
-        return res.status(400).json({ message: err.message });
+    if (err) {
+        return res.status(400).json({
+            success: false,
+            message: err.message || 'File upload error',
+            error: process.env.NODE_ENV === 'development' ? err.stack : {}
+        });
     }
     next();
 };
 
-
 router.get('/:userId', getProfile);
-router.patch('/:userId', upload, handleUploadErrors, updateProfile);
+router.patch('/:userId',
+    (req, res, next) => {
+        upload(req, res, (err) => {
+            if (err) {
+                return res.status(400).json({
+                    success: false,
+                    message: err.message || 'File upload error',
+                    error: process.env.NODE_ENV === 'development' ? err.stack : {}
+                });
+            }
+            next();
+        });
+    },
+    validateProfile,
+    updateProfile
+);
 
 module.exports = router;
