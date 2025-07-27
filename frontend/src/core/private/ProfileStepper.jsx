@@ -38,7 +38,6 @@ const ProfileStepper = () => {
         first_language: '',
         full_name: '',
         email: '',
-        date_of_birth: '',
 
         // Education
         institution_name: '',
@@ -102,7 +101,6 @@ const ProfileStepper = () => {
                         first_language: profile.first_language || '',
                         full_name: profile.full_name || '',
                         email: profile.email || '',
-                        date_of_birth: profile.date_of_birth || '',
 
                         // Education
                         institution_name: profile.institution_name || '',

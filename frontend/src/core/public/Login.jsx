@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { loginUser } from "../../utils/authHelper";
-import logo from "../../assets/logo.png";
-import login from "../../assets/login.jpg";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../contexts/AuthContext";
+import api from "../../services/api";
+import { setToken, setRefreshToken, setUser } from "../../utils/authHelper";
+
+// Import images using Vite's import.meta.glob
+const logo = new URL('../../assets/logo.png', import.meta.url).href;
+const loginImage = new URL('../../assets/login.jpg', import.meta.url).href;
 
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { login: loginUser } = useAuth();
+
     const [form, setForm] = useState({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
 
-    
     const searchParams = new URLSearchParams(location.search);
     const redirectPath = searchParams.get('redirect');
     const fromVerify = location.state?.fromVerify;
     const verifyEmail = location.state?.email || '';
 
-    
     useEffect(() => {
         if (verifyEmail) {
             setForm(prev => ({ ...prev, email: verifyEmail }));
@@ -35,27 +40,43 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
+
         try {
-            const { isNewUser } = await loginUser({ email: form.email, password: form.password });
+            const response = await api.post('/auth/login', {
+                email: form.email,
+                password: form.password,
+            });
+
+            const { accessToken, refreshToken, user } = response.data;
+
+            // Store tokens and user data
+            setToken(accessToken);
+            setRefreshToken(refreshToken);
+            setUser(user);
+
+            // Update auth context
+            loginUser(user);
+
+            // Show success message
             toast.success("Login successful!");
 
-            
-            
-            
-            
+            // Redirect based on the user's previous location or role
             if (redirectPath) {
                 navigate(redirectPath);
-            } else if (fromVerify || isNewUser) {
+            } else if (fromVerify || user?.isNewUser) {
                 navigate("/profile", { state: { fromLogin: true } });
             } else {
                 navigate("/");
             }
         } catch (err) {
             console.error('Login error:', err);
+            const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+            setError(errorMessage);
 
-            
-            if (err.status === 429) {
-                toast.error(err.response?.data?.message || "Too many login attempts. Please try again later.", {
+            // Show toast for rate limiting errors
+            if (err.response?.status === 429) {
+                toast.error(errorMessage, {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -64,15 +85,7 @@ const Login = () => {
                     draggable: true,
                 });
             } else {
-                
-                toast.error(err.message || "Login failed. Please try again.", {
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
+                toast.error(errorMessage);
             }
         } finally {
             setLoading(false);
@@ -94,6 +107,13 @@ const Login = () => {
                     </div>
                     <h2 className="text-2xl text-center font-bold mb-2">Welcome Back</h2>
                     <p className="mb-6 text-center text-gray-500">Please login to continue to your account.</p>
+
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+                            <span className="block sm:inline">{error}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block mb-1 font-medium" htmlFor="email">Email</label>
@@ -130,7 +150,21 @@ const Login = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center">
+                                <input
+                                    id="remember-me"
+                                    name="remember-me"
+                                    type="checkbox"
+                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                />
+                                <label
+                                    htmlFor="remember-me"
+                                    className="ml-2 block text-sm text-gray-900"
+                                >
+                                    Remember me
+                                </label>
+                            </div>
                             <Link
                                 to="/forgot-password"
                                 className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -156,7 +190,7 @@ const Login = () => {
                 {/* Right: Image */}
                 <div className="hidden md:block w-1/2 bg-gray-100">
                     <img
-                        src={login}
+                        src={loginImage}
                         alt="Graduation"
                         className="object-cover w-full h-full rounded-r-lg"
                     />
