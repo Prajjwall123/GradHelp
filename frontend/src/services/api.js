@@ -1,17 +1,16 @@
 import axios from 'axios';
-import { getToken, setToken, clearToken, getRefreshToken, setRefreshToken } from './authHelper';
+import { getToken, setToken, clearToken, getRefreshToken, setRefreshToken } from '../utils/auth';
 
 // Create axios instance with base URL
-const API = axios.create({
+const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'https://localhost:3443/api',
-    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
 // Request interceptor to add auth token to requests
-API.interceptors.request.use(
+api.interceptors.request.use(
     (config) => {
         const token = getToken();
         if (token) {
@@ -25,7 +24,7 @@ API.interceptors.request.use(
 );
 
 // Response interceptor to handle token refresh
-API.interceptors.response.use(
+api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
@@ -60,7 +59,7 @@ API.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
                 // Retry the original request
-                return API(originalRequest);
+                return api(originalRequest);
             } catch (error) {
                 // Refresh token failed, clear tokens and redirect to login
                 clearToken();
@@ -73,4 +72,4 @@ API.interceptors.response.use(
     }
 );
 
-export default API;
+export default api;

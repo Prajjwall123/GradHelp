@@ -1,13 +1,22 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const TokenService = require('../services/tokenService');
 
+// Load environment variables
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'your-access-token-secret';
+
+/**
+ * Middleware to authenticate requests using JWT
+ */
 const auth = async (req, res, next) => {
     try {
-        const authHeader = req.header('Authorization');
+        // Get token from Authorization header
+        const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
-                message: 'No authentication token, authorization denied'
+                message: 'No token provided or invalid token format',
+                code: 'MISSING_AUTH_TOKEN'
             });
         }
 
@@ -15,44 +24,87 @@ const auth = async (req, res, next) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'No authentication token, authorization denied'
+                message: 'No token provided',
+                code: 'NO_TOKEN'
             });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        // Verify token
+        const decoded = TokenService.verifyAccessToken(token);
+        if (!decoded) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token',
+                code: 'INVALID_TOKEN'
+            });
+        }
 
-        const user = await User.findById(decoded.userId).select('-password');
+        // Check if user still exists
+        const user = await User.findById(decoded.sub).select('-password');
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'User not found'
+                message: 'User not found',
+                code: 'USER_NOT_FOUND'
             });
         }
 
-        req.user = user;
+        // Check if user is active
+        if (user.status && user.status !== 'active') {
+            return res.status(403).json({
+                success: false,
+                message: 'User account is not active',
+                code: 'ACCOUNT_INACTIVE'
+            });
+        }
+
+        // Attach user to request object
+        req.user = {
+            _id: user._id,
+            email: user.email,
+            role: user.role,
+            full_name: user.full_name
+        };
+
         next();
     } catch (error) {
         console.error('Authentication error:', error);
-
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid token'
-            });
-        }
-
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                success: false,
-                message: 'Token expired, please log in again'
-            });
-        }
-
-        res.status(500).json({
+        return res.status(401).json({
             success: false,
-            message: 'Server error during authentication'
+            message: 'Authentication failed',
+            code: 'AUTH_FAILED',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
 
-module.exports = auth;
+/**
+ * Middleware to check if user has required role(s)
+ * @param {...String} roles - Allowed roles
+ */
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to access this resource',
+                code: 'UNAUTHORIZED_ROLE'
+            });
+        }
+
+        next();
+    };
+};
+
+module.exports = {
+    auth,
+    authorize
+};

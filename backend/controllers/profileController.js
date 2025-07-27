@@ -37,38 +37,75 @@ const createProfile = async (userId, profileData = {}) => {
 
 const getProfile = async (req, res) => {
     try {
-        const userId = req.user._id;
-
-        if (!Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({
+        console.log('getProfile - req.user:', req.user); // Log the user object
+        
+        if (!req.user || !req.user._id) {
+            console.error('No user ID found in request');
+            return res.status(401).json({
                 success: false,
-                message: 'Invalid user ID format'
+                message: 'User not authenticated',
+                code: 'UNAUTHENTICATED'
             });
         }
 
+        const userId = req.user._id;
+        console.log('User ID from token:', userId);
+
+        if (!Types.ObjectId.isValid(userId)) {
+            console.error('Invalid user ID format:', userId);
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format',
+                code: 'INVALID_USER_ID'
+            });
+        }
+
+        console.log('Looking up profile for user ID:', userId);
         const profile = await Profile.findOne({ user: userId })
             .populate('user', 'full_name email')
             .lean();
 
+        console.log('Profile lookup result:', profile);
+
         if (!profile) {
-            // Create a default profile if none exists
-            const newProfile = await createProfile(userId);
-            return res.status(200).json({
-                success: true,
-                profile: newProfile
-            });
+            console.log('No profile found, creating default profile for user:', userId);
+            try {
+                const newProfile = await createProfile(userId);
+                console.log('Created new default profile:', newProfile);
+                return res.status(200).json({
+                    success: true,
+                    profile: newProfile
+                });
+            } catch (createError) {
+                console.error('Error creating default profile:', createError);
+                throw createError;
+            }
         }
 
+        console.log('Returning existing profile for user:', userId);
         res.status(200).json({
             success: true,
             profile
         });
     } catch (error) {
-        console.error('Error getting profile:', error);
+        console.error('Error in getProfile:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            code: error.code,
+            keyValue: error.keyValue,
+            errors: error.errors
+        });
+        
         res.status(500).json({
             success: false,
             message: 'Server error while fetching profile',
-            error: process.env.NODE_ENV === 'development' ? error.message : {}
+            error: process.env.NODE_ENV === 'development' ? {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+                code: error.code
+            } : {}
         });
     }
 };
