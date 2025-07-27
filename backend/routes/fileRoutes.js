@@ -4,6 +4,8 @@ const { serveLetter } = require('../controllers/fileController');
 
 
 
-router.get('/letters/:filename', serveLetter);
+router.get('/letters/:filename', 
+    (req, res, next) => serveLetter(req, res, next)
+);
 
 module.exports = router;

@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
+const { authorize } = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 const {
     acceptScholarshipApplication,
     rejectScholarshipApplication
 } = require('../controllers/scholarshipDecisionController');
 
-// Apply auth middleware to all routes
+// Apply auth and admin middleware to all routes
 router.use(auth);
 router.use(adminAuth); // All scholarship decision routes are admin-only
 
@@ -30,8 +31,8 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-router.post(
-    '/:scholarshipAppId/accept',
+// Accept scholarship application with file upload
+router.post('/:scholarshipAppId/accept', 
     upload.single('file'),
     (req, res, next) => {
         console.log('File upload middleware:', {
@@ -44,8 +45,8 @@ router.post(
     acceptScholarshipApplication
 );
 
-router.post(
-    '/:scholarshipAppId/reject',
+// Reject scholarship application with file upload
+router.post('/:scholarshipAppId/reject',
     upload.single('file'),
     rejectScholarshipApplication
 );

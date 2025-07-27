@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 const {
@@ -11,9 +13,16 @@ const {
 } = require("../controllers/universityController");
 
 const multer = require("multer");
+
+// Ensure images directory exists
+const imagesDir = path.join(__dirname, '..', 'images');
+if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'images')
+        cb(null, imagesDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -21,30 +30,64 @@ const storage = multer.diskStorage({
         cb(null, 'university-' + uniqueSuffix + '.' + ext);
     }
 });
+
+const fileFilter = (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+        return cb(null, true);
+    }
+    cb(new Error('Only image files are allowed (jpeg, jpg, png, gif)'));
+};
+
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(file.originalname.toLowerCase());
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Only image files are allowed (jpeg, jpg, png, gif)'));
-    }
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: fileFilter
 });
+
+// Error handling middleware for file uploads
+const handleUploadError = (err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'File size too large. Maximum size is 5MB' });
+        }
+        return res.status(400).json({ error: err.message });
+    } else if (err) {
+        // An unknown error occurred
+        return res.status(400).json({ error: err.message });
+    }
+    next();
+};
 
 // Public routes
 router.get("/", getAllUniversities);
 router.get("/:id", getUniversityById);
 
 // Protected routes (require authentication)
-router.use(auth);
+router.use((req, res, next) => auth(req, res, next));
 
 // Admin-only routes
-router.post("/", adminAuth, upload.single('university_photo'), createUniversity);
-router.put("/:id", adminAuth, upload.single('university_photo'), updateUniversity);
-router.delete("/:id", adminAuth, deleteUniversity);
+router.post("/", 
+    (req, res, next) => adminAuth(req, res, next),
+    upload.single('university_photo'), 
+    (req, res, next) => handleUploadError(req, res, next),
+    createUniversity
+);
+
+router.put("/:id", 
+    (req, res, next) => adminAuth(req, res, next),
+    upload.single('university_photo'),
+    (req, res, next) => handleUploadError(req, res, next),
+    updateUniversity
+);
+
+router.delete("/:id", 
+    (req, res, next) => adminAuth(req, res, next), 
+    deleteUniversity
+);
 
 module.exports = router;

@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
+const { authorize } = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 const { acceptApplication, rejectApplication } = require('../controllers/applicationDecisionController');
 
-// Apply auth middleware to all routes
+// Apply auth and admin middleware to all routes
 router.use(auth);
 router.use(adminAuth); // All application decision routes are admin-only
 
@@ -27,14 +28,14 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-router.post(
-    '/:applicationId/accept',
+// Accept application with file upload
+router.post('/:applicationId/accept',
     upload.single('file'),
     acceptApplication
 );
 
-router.post(
-    '/:applicationId/reject',
+// Reject application with file upload
+router.post('/:applicationId/reject',
     upload.single('file'),
     rejectApplication
 );

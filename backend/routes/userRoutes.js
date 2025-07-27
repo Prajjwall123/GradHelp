@@ -19,21 +19,47 @@ const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 
 // Public routes
-router.post('/register', validate(registerSchema), register);
-router.post('/verify-otp', validate(otpVerificationSchema), verifyOTP);
-router.post('/login', validate(loginSchema), login);
+router.post('/register', 
+    (req, res, next) => validate(registerSchema)(req, res, next),
+    (req, res, next) => register(req, res, next)
+);
+
+router.post('/verify-otp', 
+    (req, res, next) => validate(otpVerificationSchema)(req, res, next),
+    (req, res, next) => verifyOTP(req, res, next)
+);
 
 // Protected routes (require authentication)
-router.use(auth);
+router.use((req, res, next) => auth(req, res, next));
 
 // User routes - these use the authenticated user's ID
-router.put('/me', updateUser);
-router.delete('/me', deleteUser);
+router.put('/me', 
+    (req, res, next) => updateUser(req, res, next)
+);
+
+router.delete('/me', 
+    (req, res, next) => deleteUser(req, res, next)
+);
 
 // Admin routes - these require admin privileges
-router.get('/admin/users', adminAuth, getAllUsers);
-router.get('/admin/users/:id', adminAuth, getUserById);
-router.put('/admin/users/:id', adminAuth, updateUser);
-router.delete('/admin/users/:id', adminAuth, deleteUser);
+router.get('/admin/users', 
+    (req, res, next) => adminAuth(req, res, next), 
+    (req, res, next) => getAllUsers(req, res, next)
+);
+
+router.get('/admin/users/:id', 
+    (req, res, next) => adminAuth(req, res, next), 
+    (req, res, next) => getUserById(req, res, next)
+);
+
+router.put('/admin/users/:id', 
+    (req, res, next) => adminAuth(req, res, next), 
+    (req, res, next) => updateUser(req, res, next)
+);
+
+router.delete('/admin/users/:id', 
+    (req, res, next) => adminAuth(req, res, next), 
+    (req, res, next) => deleteUser(req, res, next)
+);
 
 module.exports = router;

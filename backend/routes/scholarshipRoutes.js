@@ -18,11 +18,22 @@ router.get("/university/:universityId", getScholarshipsByUniversity);
 router.get("/:id", getScholarshipById);
 
 // Protected routes (require authentication)
-router.use(auth);
+router.use((req, res, next) => auth(req, res, next));
 
 // Admin-only routes
-router.post("/", adminAuth, createScholarship);
-router.put("/:id", adminAuth, updateScholarship);
-router.delete("/:id", adminAuth, deleteScholarship);
+router.post("/", 
+    (req, res, next) => adminAuth(req, res, next),
+    createScholarship
+);
+
+router.put("/:id", 
+    (req, res, next) => adminAuth(req, res, next),
+    updateScholarship
+);
+
+router.delete("/:id", 
+    (req, res, next) => adminAuth(req, res, next), 
+    deleteScholarship
+);
 
 module.exports = router;

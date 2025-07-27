@@ -16,11 +16,22 @@ router.get("/", getAllCourses);
 router.get("/:id", getCourseById);
 
 // Protected routes (require authentication)
-router.use(auth);
+router.use((req, res, next) => auth(req, res, next));
 
 // Admin-only routes
-router.post("/", adminAuth, createCourse);
-router.put("/:id", adminAuth, updateCourse);
-router.delete("/:id", adminAuth, deleteCourse);
+router.post("/", 
+    (req, res, next) => adminAuth(req, res, next), 
+    createCourse
+);
+
+router.put("/:id", 
+    (req, res, next) => adminAuth(req, res, next),
+    updateCourse
+);
+
+router.delete("/:id", 
+    (req, res, next) => adminAuth(req, res, next), 
+    deleteCourse
+);
 
 module.exports = router;

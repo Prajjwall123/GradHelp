@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { getProfile, updateProfile } = require('../controllers/profileController');
 const { validateProfile } = require('../validations/profileValidation');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 const baseUploadsDir = path.join(__dirname, '../uploads');
 const transcriptsDir = path.join(baseUploadsDir, 'transcripts');
@@ -64,12 +64,21 @@ const handleUploadErrors = (err, req, res, next) => {
     next();
 };
 
+// Apply auth middleware to all routes
 router.use(auth);
 
 router.get('/me', getProfile);
-router.patch('/me',
-    upload,
-    handleUploadErrors,
+
+// Update profile with file uploads
+router.patch('/me', 
+    (req, res, next) => {
+        upload(req, res, (err) => {
+            if (err) {
+                return handleUploadErrors(err, req, res, next);
+            }
+            next();
+        });
+    },
     validateProfile,
     updateProfile
 );
