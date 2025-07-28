@@ -31,7 +31,7 @@ const Sidebar = ({
   const safeOptions = (optionType) => Array.isArray(filterOptions[optionType]) ? filterOptions[optionType] : [];
 
   return (
-    <div className="w-72 bg-gray-900 rounded-2xl p-5 shadow-lg border border-gray-800 h-fit">
+    <div className="w-72 bg-black rounded-2xl p-5 shadow-lg border border-gray-800 h-fit">
       <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
         <Filter size={20} className="text-blue-400" />
         Filters
@@ -42,7 +42,7 @@ const Sidebar = ({
         <div className="border-b border-gray-800 pb-4">
           <button
             onClick={() => toggleSection('programLevel')}
-            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3"
+            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3 transition-colors duration-200"
           >
             <span>PROGRAM LEVEL</span>
             <ChevronDown
@@ -53,10 +53,10 @@ const Sidebar = ({
           {expandedSections.programLevel && (
             <div className="space-y-2 pl-1">
               {safeOptions('programLevels').map(level => (
-                <label key={level} className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer hover:bg-gray-800 p-2 rounded-lg transition-colors">
+                <label key={level} className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer hover:bg-gray-900 p-2 rounded-lg transition-colors duration-200">
                   <input
                     type="checkbox"
-                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-800"
+                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-900"
                     checked={safeFilter('programLevels').includes(level)}
                     onChange={() => handleFilterChange('programLevels', level)}
                   />
@@ -71,7 +71,7 @@ const Sidebar = ({
         <div className="border-b border-gray-800 pb-4">
           <button
             onClick={() => toggleSection('location')}
-            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3"
+            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3 transition-colors duration-200"
           >
             <span>LOCATION</span>
             <ChevronDown
@@ -85,7 +85,7 @@ const Sidebar = ({
                 <label key={location} className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer hover:bg-gray-800 p-2 rounded-lg transition-colors">
                   <input
                     type="checkbox"
-                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-800"
+                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-900"
                     checked={safeFilter('locations').includes(location)}
                     onChange={() => handleFilterChange('locations', location)}
                   />
@@ -100,7 +100,7 @@ const Sidebar = ({
         <div className="border-b border-gray-800 pb-4">
           <button
             onClick={() => toggleSection('duration')}
-            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3"
+            className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white mb-3 transition-colors duration-200"
           >
             <span>DURATION</span>
             <ChevronDown
@@ -114,7 +114,7 @@ const Sidebar = ({
                 <label key={duration} className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer hover:bg-gray-800 p-2 rounded-lg transition-colors">
                   <input
                     type="checkbox"
-                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-800"
+                    className="form-checkbox h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-400 bg-gray-900"
                     checked={safeFilter('durations').includes(duration)}
                     onChange={() => handleFilterChange('durations', duration)}
                   />
@@ -128,18 +128,18 @@ const Sidebar = ({
 
       {/* Saved Items Section */}
       <div className="mt-8 pt-6 border-t border-gray-800">
-        <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Bookmark size={16} className="text-blue-400" />
           SAVED ITEMS
         </h3>
         <div className="space-y-2">
-          <button className="w-full flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-800 p-3 rounded-lg transition-colors border border-gray-800 hover:border-gray-700">
+          <button className="w-full flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-900 p-3 rounded-lg transition-colors duration-200 border border-gray-800 hover:border-gray-700">
             <div className="w-8 h-8 rounded-md bg-blue-500/20 flex items-center justify-center">
               <Star size={16} className="text-blue-400" />
             </div>
             <span>My Favorites</span>
           </button>
-          <button className="w-full flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-800 p-3 rounded-lg transition-colors border border-gray-800 hover:border-gray-700">
+          <button className="w-full flex items-center gap-3 text-sm text-gray-300 hover:bg-gray-900 p-3 rounded-lg transition-colors duration-200 border border-gray-800 hover:border-gray-700">
             <div className="w-8 h-8 rounded-md bg-purple-500/20 flex items-center justify-center">
               <Award size={16} className="text-purple-400" />
             </div>

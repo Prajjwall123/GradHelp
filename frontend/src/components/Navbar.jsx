@@ -79,7 +79,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 bg-gray-900 border-b border-gray-800 ${scrolled ? 'bg-opacity-95 backdrop-blur-md shadow-xl' : ''}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-500 bg-black border-b border-gray-800 ${scrolled ? 'bg-opacity-95 backdrop-blur-md shadow-xl' : ''}`}>
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="flex items-center h-20">
           {/* Logo */}
@@ -104,9 +104,9 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${location.pathname === item.path
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${location.pathname === item.path
+                  ? 'bg-black text-white'
+                  : 'text-gray-300 hover:bg-black hover:text-white'
                   }`}
               >
                 {item.icon}
@@ -128,46 +128,48 @@ const Navbar = () => {
                       onClick={toggleUserDropdown}
                     >
                       <span className="sr-only">Open user menu</span>
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <UserIcon className="h-5 w-5 text-blue-600" />
+                      <div className="h-9 w-9 rounded-full bg-gray-800 flex items-center justify-center border border-gray-600 hover:border-gray-500 transition-colors duration-200">
+                        <UserIcon className="h-4.5 w-4.5 text-gray-300" />
                       </div>
                     </button>
                   </div>
 
                   {userDropdownOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-1.5 bg-gray-900 border border-gray-800 focus:outline-none z-50">
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-800 transition-colors duration-200"
                         onClick={() => setUserDropdownOpen(false)}
                       >
-                        Your Profile
+                        <UserIcon size={16} className="w-5 h-5 mr-3 text-gray-400" />
+                        <span>Your Profile</span>
                       </Link>
                       <Link
                         to="/my-applications"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-800 transition-colors duration-200"
                         onClick={() => setUserDropdownOpen(false)}
                       >
-                        Your Applications
+                        <FileText size={16} className="w-5 h-5 mr-3 text-blue-400" />
+                        <span>Your Applications</span>
                       </Link>
                       <Link
                         to="/settings/security"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-800 transition-colors duration-200"
                         onClick={() => setUserDropdownOpen(false)}
                       >
-                        <div className="flex items-center">
-                          <Shield size={16} className="mr-2" />
-                          Security Settings
-                        </div>
+                        <Shield size={16} className="w-5 h-5 mr-3 text-purple-400" />
+                        <span>Security Settings</span>
                       </Link>
+                      <div className="border-t border-gray-800 my-1"></div>
                       <button
                         onClick={() => {
                           handleLogout();
                           setUserDropdownOpen(false);
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex w-full items-center px-4 py-2.5 text-sm text-red-400 hover:bg-gray-800 transition-colors duration-200"
                       >
-                        Sign out
+                        <LogOut size={16} className="w-5 h-5 mr-3" />
+                        <span>Sign out</span>
                       </button>
                     </div>
                   )}
@@ -177,14 +179,14 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                  className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200"
                 >
                   <LogIn size={18} className="mr-2" />
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="ml-4 px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
                 >
                   Sign up
                 </Link>
@@ -196,7 +198,7 @@ const Navbar = () => {
           <div className="lg:hidden flex items-center">
             <button
               onClick={toggleMobileMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-800 focus:ring-white"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-white transition-colors duration-200"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -211,15 +213,15 @@ const Navbar = () => {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white shadow-lg">
+          <div className="lg:hidden bg-gray-900 shadow-xl border-t border-gray-800">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {navLinks.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
                   className={`${location.pathname === item.path
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     } block px-3 py-2 rounded-md text-base font-medium`}
                   onClick={toggleMobileMenu}
                 >
@@ -231,21 +233,21 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <div className="pt-4 pb-3 border-t border-gray-200">
                   <div className="flex items-center px-5">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <UserIcon className="h-6 w-6 text-blue-600" />
+                    <div className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center border border-gray-600">
+                      <UserIcon className="h-6 w-6 text-gray-300" />
                     </div>
                   </div>
                   <div className="mt-3 px-2 space-y-1">
                     <Link
                       to="/profile"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800 hover:text-white"
                       onClick={toggleMobileMenu}
                     >
                       Your Profile
                     </Link>
                     <Link
                       to="/my-applications"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800 hover:text-white"
                       onClick={toggleMobileMenu}
                     >
                       Your Applications
