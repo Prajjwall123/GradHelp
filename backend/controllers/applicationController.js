@@ -300,6 +300,18 @@ const updateApplicationSOP = async (req, res) => {
     }
 };
 
+const getAllApplications = async (req, res) => {
+    try {
+        const applications = await Application.find()
+            .populate('profile')
+            .populate('course');
+
+        res.json(applications);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createApplication,
     getApplicationById,
@@ -307,5 +319,6 @@ module.exports = {
     updateApplicationStatus,
     deleteApplication,
     getApplicationsByUser,
-    updateApplicationSOP
+    updateApplicationSOP,
+    getAllApplications
 };

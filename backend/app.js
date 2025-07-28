@@ -23,6 +23,8 @@ const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const logRoutes = require('./routes/logRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+
 
 // Connect to database
 connectDB();
@@ -67,6 +69,7 @@ app.use("/api/files", fileRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

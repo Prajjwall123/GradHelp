@@ -10,7 +10,8 @@ const {
     getApplicationsByUser,
     updateApplicationStatus,
     deleteApplication,
-    updateApplicationSOP
+    updateApplicationSOP,
+    getAllApplications
 } = require("../controllers/applicationController");
 
 const { validateSOPUpdate } = require("../validations/applicationValidation");
@@ -37,6 +38,8 @@ router.patch(
 router.delete("/:id", deleteApplication);
 
 // Admin-only routes
+router.get("/admin/all", adminAuth, getAllApplications);
+
 router.patch(
     "/:id/status", 
     adminAuth,
