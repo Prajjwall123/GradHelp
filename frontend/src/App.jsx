@@ -26,8 +26,18 @@ const Applications = lazy(() => import("./core/private/Applications"));
 const AboutUs = lazy(() => import("./core/public/AboutUs"));
 const ContactUs = lazy(() => import("./core/public/ContactUs"));
 const Help = lazy(() => import("./core/public/Help"));
-const PageNotFound = lazy(() => import("./core/public/PageNotFound"));
+const PageNotFound = lazy(() => import('./core/public/PageNotFound'));
 const Unauthorized = lazy(() => import("./core/public/Unauthorized"));
+
+// Admin Components
+const AdminLayout = lazy(() => import("./core/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./core/admin/AdminDashboard"));
+const AdminApplications = lazy(() => import("./core/admin/AdminApplications"));
+const AdminUniversities = lazy(() => import("./core/admin/AdminUniversities"));
+const AdminCourses = lazy(() => import("./core/admin/AdminCourses"));
+const AdminScholarships = lazy(() => import("./core/admin/AdminScholarships"));
+const AdminUsers = lazy(() => import("./core/admin/AdminUsers"));
+const AdminLogs = lazy(() => import("./core/admin/AdminLogs"));
 
 function App() {
   const [count, setCount] = useState(0)
@@ -61,6 +71,29 @@ function App() {
     { path: "/course/:id", element: <Suspense fallback={<div>Loading...</div>}><CourseDetail /></Suspense> },
   ];
 
+  // Admin routes (protected and admin role required)
+  const adminRoutes = [
+    {
+      path: "/admin",
+      element: (
+        <PrivateRoute requiredRole="admin">
+          <Suspense fallback={<div>Loading Admin...</div>}>
+            <AdminLayout />
+          </Suspense>
+        </PrivateRoute>
+      ),
+      children: [
+        { index: true, element: <AdminDashboard /> },
+        { path: "applications", element: <AdminApplications /> },
+        { path: "universities", element: <AdminUniversities /> },
+        { path: "courses", element: <AdminCourses /> },
+        { path: "scholarships", element: <AdminScholarships /> },
+        { path: "users", element: <AdminUsers /> },
+        { path: "logs", element: <AdminLogs /> },
+      ]
+    }
+  ];
+
   // Create the router configuration
   const router = createBrowserRouter([
     // Public routes
@@ -74,6 +107,9 @@ function App() {
       element: <PrivateRoute />,
       children: protectedRoutes,
     },
+
+    // Admin routes
+    ...adminRoutes,
 
     // 404 - Keep this last
     { path: "*", element: <Suspense fallback={<div>Loading...</div>}><PageNotFound /></Suspense> },
