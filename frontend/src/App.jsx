@@ -43,6 +43,7 @@ function App() {
     { path: "/about", element: <Suspense fallback={<div>Loading...</div>}><AboutUs /></Suspense> },
     { path: "/contact", element: <Suspense fallback={<div>Loading...</div>}><ContactUs /></Suspense> },
     { path: "/help", element: <Suspense fallback={<div>Loading...</div>}><Help /></Suspense> },
+    { path: "/programs", element: <Suspense fallback={<div>Loading...</div>}><Courses /></Suspense> },
   ];
 
   // Protected routes (authentication required)

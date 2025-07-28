@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronDown, User, LogIn, Bell, BookOpen, School, Info, Mail, Home as HomeIcon, LogOut, User as UserIcon, FileText } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogIn, BookOpen, School, Info, Mail, Home as HomeIcon, LogOut, User as UserIcon, FileText } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import whiteLogo from "../assets/white_logo.png";
 import { isAuthenticated, clearUserData } from "../utils/authHelper";
@@ -9,9 +9,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -47,9 +45,6 @@ const Navbar = () => {
     setUserDropdownOpen(!userDropdownOpen);
   };
 
-  const toggleNotifications = () => {
-    setNotificationsOpen(!notificationsOpen);
-  };
 
   const handleLogout = () => {
     clearUserData();
@@ -124,17 +119,7 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
-                <button
-                  onClick={toggleNotifications}
-                  className="relative p-2 rounded-full text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <Bell className="h-6 w-6" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                  )}
-                </button>
-
-                <div className="relative ml-3">
+                <div className="relative">
                   <div>
                     <button
                       type="button"

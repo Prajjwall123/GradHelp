@@ -98,11 +98,14 @@ const loginUser = async (credentials) => {
 
             const isNewUser = localStorage.getItem('isNewUser') === 'true';
             localStorage.removeItem('isNewUser');
+            
+            // Get user data from the token, not from response
+            const userData = getUser();
 
             return {
                 success: true,
                 message: 'Login successful',
-                user: response.data.user,
+                user: userData, // Use user data from token
                 isNewUser
             };
         }
@@ -140,11 +143,14 @@ const verifyOTP = async (payload) => {
 
             // Store refresh token in HTTP-only cookie
             setRefreshToken(response.data.refresh_token);
+            
+            // Get user data from the token, not from response
+            const userData = getUser();
 
             return {
                 success: true,
                 message: 'OTP verified successfully',
-                user: response.data.user
+                user: userData // Use user data from token
             };
         }
 
@@ -170,13 +176,20 @@ const getUser = () => {
         return {
             id: payload.sub,
             email: payload.email,
-            role: payload.role
-            // Add other non-sensitive claims as needed
+            role: payload.role,
+            // Add other non-sensitive claims from the token as needed
         };
     } catch (error) {
         console.error('Error parsing token:', error);
         return null;
     }
+};
+
+// This is a no-op function since we don't want to store user data in localStorage
+// Keeping it for backward compatibility
+const setUser = () => {
+    console.warn('setUser is deprecated. User data is now only stored in the token.');
+    return true;
 };
 
 // Export all functions
@@ -191,5 +204,6 @@ export {
     registerUser,
     setToken,
     setRefreshToken,
+    setUser,
     verifyOTP
 };
