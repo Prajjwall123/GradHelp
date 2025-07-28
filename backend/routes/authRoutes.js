@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
+const authController = require('../controllers/authController');
 const { forgotPassword, resetPassword } = require('../controllers/authController');
 const { forgotPasswordSchema } = require('../validations/userValidation');
 const validate = require('../middleware/validation');
 const { forgotPasswordLimiter, resetPasswordLimiter } = require('../middleware/rateLimiter');
+const mfaController = require('../controllers/mfaController');
+const { auth } = require('../middleware/auth');
+const validateRequest = require('../middleware/validateRequest');
 
 router.post('/forgot-password',
     (req, res, next) => forgotPasswordLimiter(req, res, next),
@@ -16,10 +21,6 @@ router.post('/reset-password',
     (req, res, next) => resetPassword(req, res, next)
 );
 
-const { body } = require('express-validator');
-const authController = require('../controllers/authController');
-const { auth } = require('../middleware/auth');
-const validateRequest = require('../middleware/validateRequest');
 
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get tokens
@@ -44,6 +45,48 @@ router.post(
     ],
     (req, res, next) => validateRequest(req, res, next),
     (req, res, next) => authController.refreshToken(req, res, next)
+);
+
+// MFA Routes
+// @route   GET /api/auth/mfa/status
+// @desc    Get MFA status for current user
+// @access  Private
+router.get('/mfa/status',
+    auth,
+    (req, res, next) => mfaController.getMfaStatus(req, res, next)
+);
+
+// @route   GET /api/auth/mfa/setup
+// @desc    Generate MFA secret and QR code
+// @access  Private
+router.get('/mfa/setup', 
+    auth, 
+    (req, res, next) => mfaController.setupMFA(req, res, next)
+);
+
+// @route   POST /api/auth/mfa/verify
+// @desc    Verify MFA setup
+// @access  Private
+router.post('/mfa/verify', 
+    auth,
+    [
+        body('token', 'Token is required').isLength({ min: 6, max: 6 }),
+        body('secret', 'Secret is required').notEmpty()
+    ],
+    (req, res, next) => validateRequest(req, res, next),
+    (req, res, next) => mfaController.verifyMFA(req, res, next)
+);
+
+// @route   POST /api/auth/mfa/verify-login
+// @desc    Verify MFA token during login
+// @access  Public
+router.post('/mfa/verify-login',
+    [
+        body('token', 'Token is required').isLength({ min: 6, max: 6 }),
+        body('tempToken', 'Temporary token is required').notEmpty()
+    ],
+    (req, res, next) => validateRequest(req, res, next),
+    (req, res, next) => authController.verifyMfaLogin(req, res, next)
 );
 
 // @route   POST /api/auth/logout

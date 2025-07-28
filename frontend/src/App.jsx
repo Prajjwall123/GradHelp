@@ -38,6 +38,7 @@ const AdminCourses = lazy(() => import("./core/admin/AdminCourses"));
 const AdminScholarships = lazy(() => import("./core/admin/AdminScholarships"));
 const AdminUsers = lazy(() => import("./core/admin/AdminUsers"));
 const AdminLogs = lazy(() => import("./core/admin/AdminLogs"));
+const SecuritySettings = lazy(() => import("./components/settings/SecuritySettings"));
 
 function App() {
   const [count, setCount] = useState(0)
@@ -62,6 +63,7 @@ function App() {
     { path: "/profile", element: <Suspense fallback={<div>Loading...</div>}><ProfileStepper /></Suspense> },
     { path: "/my-applications", element: <Suspense fallback={<div>Loading...</div>}><Applications /></Suspense> },
     { path: "/sop-writer", element: <Suspense fallback={<div>Loading...</div>}><SOPWriter /></Suspense> },
+    { path: "/settings/security", element: <Suspense fallback={<div>Loading...</div>}><SecuritySettings /></Suspense> },
   ];
 
   // Public university/course routes (no auth required)

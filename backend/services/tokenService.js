@@ -3,7 +3,7 @@ const RefreshToken = require('../models/refreshToken');
 const User = require('../models/user');
 
 // Load environment variables
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'your-access-token-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your-refresh-token-secret';
 
 // Token expiration times (in seconds)
@@ -19,7 +19,7 @@ class TokenService {
             role: user.role
         };
 
-        return jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+        return jwt.sign(payload, JWT_SECRET, {
             expiresIn: ACCESS_TOKEN_EXPIRY
         });
     }
@@ -51,7 +51,7 @@ class TokenService {
     // Verify access token
     static verifyAccessToken(token) {
         try {
-            return jwt.verify(token, ACCESS_TOKEN_SECRET);
+            return jwt.verify(token, JWT_SECRET);
         } catch (error) {
             return null;
         }

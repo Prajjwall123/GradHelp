@@ -3,9 +3,12 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { Modal } from 'antd';
 import { useAuth } from "../../contexts/AuthContext";
 import api from "../../services/api";
+import authApi from "../../services/authApi";
 import { setToken, setRefreshToken, setUser } from "../../utils/authHelper";
+import MfaVerification from "../../components/auth/MfaVerification";
 
 // Import images using Vite's import.meta.glob
 const logo = new URL('../../assets/logo.png', import.meta.url).href;
@@ -20,6 +23,11 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [mfaVerification, setMfaVerification] = useState({
+        show: false,
+        tempToken: '',
+        user: null
+    });
 
     const searchParams = new URLSearchParams(location.search);
     const redirectPath = searchParams.get('redirect');
@@ -37,38 +45,53 @@ const Login = () => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleLoginSuccess = (userData, tokens) => {
+        const { accessToken, refreshToken, user } = tokens || userData;
+        
+        // Store tokens and user data
+        if (accessToken) setToken(accessToken);
+        if (refreshToken) setRefreshToken(refreshToken);
+        if (user) setUser(user);
+
+        // Update auth context
+        loginUser(user || userData);
+
+        // Show success message
+        toast.success("Login successful!");
+
+        // Redirect based on the user's previous location or role
+        if (redirectPath) {
+            navigate(redirectPath);
+        } else if (fromVerify || user?.isNewUser) {
+            navigate("/profile", { state: { fromLogin: true } });
+        } else {
+            navigate("/");
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
         try {
-            const response = await api.post('/auth/login', {
+            const response = await authApi.login({
                 email: form.email,
                 password: form.password,
             });
 
-            const { accessToken, refreshToken, user } = response.data;
-
-            // Store tokens and user data
-            setToken(accessToken);
-            setRefreshToken(refreshToken);
-            setUser(user);
-
-            // Update auth context
-            loginUser(user);
-
-            // Show success message
-            toast.success("Login successful!");
-
-            // Redirect based on the user's previous location or role
-            if (redirectPath) {
-                navigate(redirectPath);
-            } else if (fromVerify || user?.isNewUser) {
-                navigate("/profile", { state: { fromLogin: true } });
-            } else {
-                navigate("/");
+            // Check if MFA verification is required
+            if (response.data.requiresMFA) {
+                setMfaVerification({
+                    show: true,
+                    tempToken: response.data.tempToken,
+                    user: response.data.user
+                });
+                return;
             }
+
+            // If no MFA required, proceed with normal login
+            handleLoginSuccess(response.data);
         } catch (err) {
             console.error('Login error:', err);
             const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
@@ -92,8 +115,47 @@ const Login = () => {
         }
     };
 
+    const handleMfaVerificationComplete = (data) => {
+        // Hide MFA verification
+        setMfaVerification({
+            show: false,
+            tempToken: '',
+            user: null
+        });
+        
+        // Proceed with login using the returned data
+        handleLoginSuccess(data);
+    };
+
+    const handleMfaBackToLogin = () => {
+        setMfaVerification({
+            show: false,
+            tempToken: '',
+            user: null
+        });
+        setLoading(false);
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-white">
+            {/* MFA Verification Modal */}
+            <Modal
+                title="Two-Factor Authentication"
+                open={mfaVerification.show}
+                onCancel={handleMfaBackToLogin}
+                footer={null}
+                width={400}
+                centered
+                closable={false}
+                maskClosable={false}
+            >
+                <MfaVerification 
+                    tempToken={mfaVerification.tempToken}
+                    user={mfaVerification.user}
+                    onBack={handleMfaBackToLogin}
+                    onComplete={handleMfaVerificationComplete}
+                />
+            </Modal>
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}

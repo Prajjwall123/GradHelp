@@ -48,11 +48,13 @@ app.use('/api/images', express.static(path.join(__dirname, 'images')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiters for specific routes
-app.use("/api/auth", authLimiter);
 app.use("/api/users/login", authLimiter);
 app.use("/api/contact", formSubmitLimiter);
 app.use("/api/applications", formSubmitLimiter);
 app.use("/api/scholarship-applications", formSubmitLimiter);
+
+// Apply auth limiter to all auth routes
+authRoutes.use(authLimiter);
 
 // Routes
 app.use("/api/universities", universityRoutes);

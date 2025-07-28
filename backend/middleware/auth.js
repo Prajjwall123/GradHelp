@@ -3,7 +3,7 @@ const User = require('../models/user');
 const TokenService = require('../services/tokenService');
 
 // Load environment variables
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'your-access-token-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret';
 
 /**
  * Middleware to authenticate requests using JWT
@@ -30,7 +30,7 @@ const auth = async (req, res, next) => {
         }
 
         // Verify token
-        const decoded = TokenService.verifyAccessToken(token);
+        const decoded = jwt.verify(token, JWT_SECRET);
         if (!decoded) {
             return res.status(401).json({
                 success: false,

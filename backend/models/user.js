@@ -9,7 +9,32 @@ const UserSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    createdAt: { type: Date, default: Date.now }
+    mfaEnabled: { 
+        type: Boolean, 
+        default: false 
+    },
+    mfaSecret: { 
+        type: String, 
+        select: false 
+    },
+    backupCodes: [{ 
+        code: { 
+            type: String, 
+            select: false 
+        },
+        used: { 
+            type: Boolean, 
+            default: false 
+        }
+    }],
+    isNewUser: {
+        type: Boolean,
+        default: true
+    },
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    }
 });
 
 UserSchema.index({ email: 1 });

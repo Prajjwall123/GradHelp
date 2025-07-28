@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronDown, User, LogIn, BookOpen, School, Info, Mail, Home as HomeIcon, LogOut, User as UserIcon, FileText } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogIn, BookOpen, School, Info, Mail, Home as HomeIcon, LogOut, User as UserIcon, FileText, Shield } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import whiteLogo from "../assets/white_logo.png";
 import { isAuthenticated, clearUserData } from "../utils/authHelper";
@@ -149,6 +149,16 @@ const Navbar = () => {
                         onClick={() => setUserDropdownOpen(false)}
                       >
                         Your Applications
+                      </Link>
+                      <Link
+                        to="/settings/security"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setUserDropdownOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <Shield size={16} className="mr-2" />
+                          Security Settings
+                        </div>
                       </Link>
                       <button
                         onClick={() => {

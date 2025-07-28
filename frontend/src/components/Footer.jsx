@@ -16,7 +16,7 @@ const Footer = () => {
                                 alt="Gradly Logo"
                                 className="h-8 w-auto"
                             />
-                            <span className="text-xl font-bold text-white">GRADLY</span>
+                            <span className="text-xl font-bold text-white">GRADHELP</span>
                         </div>
                         <p className="text-sm text-gray-400">
                             Empowering students to find their perfect educational path with our comprehensive university search platform.
@@ -65,7 +65,7 @@ const Footer = () => {
                             </li>
                             <li className="flex items-center space-x-2">
                                 <Mail size={18} className="text-blue-500" />
-                                <span>info.gradly@gmail.com</span>
+                                <span>info.gradhelp@gmail.com</span>
                             </li>
                         </ul>
                     </div>
@@ -73,7 +73,7 @@ const Footer = () => {
 
                 {/* Copyright */}
                 <div className="border-t border-gray-800 mt-12 pt-6 text-center text-sm text-gray-500">
-                    <p> {new Date().getFullYear()} Gradly. All rights reserved.</p>
+                    <p> {new Date().getFullYear()} GradHelp. All rights reserved.</p>
                 </div>
             </div>
         </footer>
