@@ -2,6 +2,7 @@ const User = require('../models/user');
 const OTP = require('../models/otp');
 const bcrypt = require('bcryptjs');
 const { sendOTPEmail } = require('../utils/email');
+const { checkPasswordExpiration, checkPasswordHistory } = require('../middleware/passwordMiddleware');
 
 /**
  * Handles forgot password request
@@ -9,7 +10,9 @@ const { sendOTPEmail } = require('../utils/email');
  * 2. Generates and saves OTP
  * 3. Sends OTP to user's email
  */
-const forgotPassword = async (req, res) => {
+const forgotPassword = [
+    checkPasswordExpiration,
+    async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -49,14 +52,17 @@ const forgotPassword = async (req, res) => {
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
-};
+}];
 
 /**
  * Handles password reset with OTP verification
  * 1. Validates OTP
  * 2. Updates user's password
+ * 3. Updates password history
  */
-const resetPassword = async (req, res) => {
+const resetPassword = [
+    checkPasswordHistory,
+    async (req, res) => {
     try {
         let { email, newPassword, otp } = req.body;
 
@@ -90,19 +96,36 @@ const resetPassword = async (req, res) => {
         // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update user's password
-        const updatedUser = await User.findOneAndUpdate(
-            { email: email.toLowerCase().trim() },
-            { password: hashedPassword },
-            { new: true }
-        );
-
-        if (!updatedUser) {
+        // Find user and update password with history
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
+
+        // Add current password to history before updating
+        user.passwordHistory.unshift({
+            hashedPassword: user.password,
+            changedAt: user.passwordChangedAt || new Date()
+        });
+
+        // Keep only last 5 passwords
+        if (user.passwordHistory.length > 5) {
+            user.passwordHistory = user.passwordHistory.slice(0, 5);
+        }
+
+        // Update user's password and timestamps
+        user.password = hashedPassword;
+        user.passwordChangedAt = Date.now();
+        user.passwordExpiresAt = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000); // 45 days from now
+        
+        await user.save();
+        
+        // Get updated user without sensitive data
+        const updatedUser = await User.findById(user._id).select('-password -passwordHistory -__v');
 
         res.status(200).json({
             success: true,
@@ -117,7 +140,7 @@ const resetPassword = async (req, res) => {
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
-};
+}];
 
 module.exports = {
     forgotPassword,

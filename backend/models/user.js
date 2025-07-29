@@ -4,6 +4,20 @@ const UserSchema = new mongoose.Schema({
     full_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    passwordHistory: [{
+        hashedPassword: { type: String, required: true },
+        changedAt: { type: Date, default: Date.now }
+    }],
+    passwordChangedAt: { 
+        type: Date, 
+        default: Date.now,
+        select: false
+    },
+    passwordExpiresAt: {
+        type: Date,
+        default: () => new Date(+new Date() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
+        select: false
+    },
     role: {
         type: String,
         enum: ['user', 'admin'],
