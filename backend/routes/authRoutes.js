@@ -2,23 +2,26 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
-const { forgotPassword, resetPassword } = require('../controllers/authController');
-const { forgotPasswordSchema } = require('../validations/userValidation');
+const passwordResetController = require('../controllers/passwordResetController');
+const { forgotPasswordSchema, resetPasswordSchema } = require('../validations/userValidation');
 const validate = require('../middleware/validation');
 const { forgotPasswordLimiter, resetPasswordLimiter } = require('../middleware/rateLimiter');
 const mfaController = require('../controllers/mfaController');
 const { auth } = require('../middleware/auth');
 const validateRequest = require('../middleware/validateRequest');
 
+// Forgot password route
 router.post('/forgot-password',
-    (req, res, next) => forgotPasswordLimiter(req, res, next),
-    (req, res, next) => validate(forgotPasswordSchema)(req, res, next),
-    (req, res, next) => forgotPassword(req, res, next)
+    forgotPasswordLimiter,
+    validate(forgotPasswordSchema),
+    passwordResetController.forgotPassword
 );
 
+// Reset password route
 router.post('/reset-password',
-    (req, res, next) => resetPasswordLimiter(req, res, next),
-    (req, res, next) => resetPassword(req, res, next)
+    resetPasswordLimiter,
+    validate(resetPasswordSchema),
+    passwordResetController.resetPassword
 );
 
 

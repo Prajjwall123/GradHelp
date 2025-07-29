@@ -60,16 +60,43 @@ exports.forgotPasswordSchema = Joi.object({
 
 // For reset password
 exports.resetPasswordSchema = Joi.object({
-    token: Joi.string().required().messages({
-        'string.empty': 'Token is required',
-        'any.required': 'Token is required'
-    }),
-    password: passwordSchema,
-    confirmPassword: Joi.string()
-        .valid(Joi.ref('password'))
+    email: Joi.alternatives()
+        .try(
+            emailSchema,
+            Joi.object({
+                email: emailSchema.required(),
+                newPassword: passwordSchema.required(),
+                otp: Joi.string()
+                    .length(6)
+                    .pattern(/^\d+$/)
+                    .required()
+            })
+        )
         .required()
         .messages({
-            'any.only': 'Passwords do not match',
-            'any.required': 'Please confirm your password'
-        })
+            'alternatives.match': 'Invalid request format',
+            'any.required': 'Request body is required'
+        }),
+    
+    // These fields are kept for backward compatibility
+    newPassword: Joi.when('email', {
+        is: Joi.object(),
+        then: Joi.forbidden(),
+        otherwise: passwordSchema.required()
+    }),
+    
+    otp: Joi.when('email', {
+        is: Joi.object(),
+        then: Joi.forbidden(),
+        otherwise: Joi.string()
+            .length(6)
+            .pattern(/^\d+$/)
+            .required()
+            .messages({
+                'string.length': 'OTP must be 6 digits',
+                'string.pattern.base': 'OTP must contain only numbers',
+                'string.empty': 'OTP is required',
+                'any.required': 'OTP is required'
+            })
+    })
 });

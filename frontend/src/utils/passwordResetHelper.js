@@ -13,12 +13,12 @@ export const requestPasswordReset = async (email) => {
     }
 };
 
-export const resetPassword = async (email, otp, newPassword) => {
+export const resetPassword = async (data) => {
     try {
         const response = await API.post('/auth/reset-password', {
-            email,
-            otp,
-            newPassword
+            email: data.email,
+            otp: data.otp,
+            newPassword: data.newPassword
         });
         toast.success('Password has been reset successfully');
         return { success: true, data: response.data };
