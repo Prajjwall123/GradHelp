@@ -7,15 +7,25 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true // Important for sending cookies (if using httpOnly cookies)
 });
 
-// Request interceptor to add auth token to requests
+// Request interceptor to add auth token and CSRF token to requests
 api.interceptors.request.use(
     (config) => {
         const token = getToken();
+        const csrfToken = localStorage.getItem('csrfToken');
+
+        // Add Authorization header if token exists
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add CSRF token for state-changing requests
+        if (csrfToken && ['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
+            config.headers['X-CSRF-Token'] = csrfToken;
+        }
+
         return config;
     },
     (error) => {
@@ -23,9 +33,16 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh and CSRF token updates
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Check for new CSRF token in response headers
+        const csrfToken = response.headers['x-csrf-token'];
+        if (csrfToken) {
+            localStorage.setItem('csrfToken', csrfToken);
+        }
+        return response;
+    },
     async (error) => {
         const originalRequest = error.config;
 
@@ -38,6 +55,7 @@ api.interceptors.response.use(
                 if (!refreshToken) {
                     // No refresh token available, redirect to login
                     clearToken();
+                    localStorage.removeItem('csrfToken');
                     window.location.href = '/login';
                     return Promise.reject(error);
                 }
@@ -58,11 +76,19 @@ api.interceptors.response.use(
                 // Update the authorization header
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
+                // Check for new CSRF token in response
+                const csrfToken = response.headers['x-csrf-token'];
+                if (csrfToken) {
+                    localStorage.setItem('csrfToken', csrfToken);
+                    originalRequest.headers['X-CSRF-Token'] = csrfToken;
+                }
+
                 // Retry the original request
                 return api(originalRequest);
             } catch (error) {
-                // Refresh token failed, clear tokens and redirect to login
+                // Refresh token failed, clear everything and redirect to login
                 clearToken();
+                localStorage.removeItem('csrfToken');
                 window.location.href = '/login';
                 return Promise.reject(error);
             }

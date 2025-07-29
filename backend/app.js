@@ -6,6 +6,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const { generalLimiter, authLimiter, formSubmitLimiter } = require('./middleware/rateLimiter');
 const requestLogger = require('./middleware/requestLogger');
+const { csrfProtection, verifyCSRFToken } = require('./middleware/csrfProtection');
 
 const app = express();
 
@@ -25,7 +26,6 @@ const aiRoutes = require('./routes/aiRoutes');
 const logRoutes = require('./routes/logRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
-
 // Connect to database
 connectDB();
 
@@ -33,7 +33,8 @@ const corsOptions = {
     origin: ["http://localhost:5173", "https://localhost:5173"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    exposedHeaders: ["X-CSRF-Token"]
 };
 
 app.use(generalLimiter);
@@ -43,6 +44,9 @@ app.use(requestLogger);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add CSRF protection middleware
+app.use(csrfProtection);
 
 app.use('/api/images', express.static(path.join(__dirname, 'images')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

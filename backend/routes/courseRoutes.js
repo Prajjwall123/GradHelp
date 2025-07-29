@@ -1,36 +1,47 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const adminAuth = require('../middleware/adminAuth');
-
+const { check } = require('express-validator');
 const {
     getAllCourses,
     getCourseById,
+    createCourse,
     updateCourse,
-    deleteCourse,
-    createCourse
+    deleteCourse
 } = require("../controllers/courseController");
+const { adminAuth } = require('../middleware/adminAuth');
+const { verifyCSRFToken } = require('../middleware/csrfProtection');
 
 // Public routes
 router.get("/", getAllCourses);
 router.get("/:id", getCourseById);
 
-// Protected routes (require authentication)
-router.use((req, res, next) => auth(req, res, next));
-
-// Admin-only routes
-router.post("/", 
-    (req, res, next) => adminAuth(req, res, next), 
+// Protected admin routes with CSRF protection
+router.post(
+    "/",
+    verifyCSRFToken,
+    (req, res, next) => adminAuth(req, res, next),
+    [
+        check('name', 'Name is required').not().isEmpty(),
+        check('university', 'University ID is required').isMongoId()
+    ],
     createCourse
 );
 
-router.put("/:id", 
+router.put(
+    "/:id",
+    verifyCSRFToken,
     (req, res, next) => adminAuth(req, res, next),
+    [
+        check('name', 'Name is required').optional().not().isEmpty(),
+        check('university', 'University ID must be a valid ID').optional().isMongoId()
+    ],
     updateCourse
 );
 
-router.delete("/:id", 
-    (req, res, next) => adminAuth(req, res, next), 
+router.delete(
+    "/:id",
+    verifyCSRFToken,
+    (req, res, next) => adminAuth(req, res, next),
     deleteCourse
 );
 
