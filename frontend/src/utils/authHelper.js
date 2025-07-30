@@ -84,8 +84,35 @@ const clearUserData = () => {
     }
 };
 
+// Fetch CSRF token from backend before login
+export const fetchCSRFToken = async () => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://localhost:3443/api'}/auth/csrf-token`, {
+            credentials: 'include',
+        });
+        const data = await response.json();
+        if (data.csrfToken) {
+            sessionStorage.setItem('csrfToken', data.csrfToken);
+            return data.csrfToken;
+        }
+        // fallback: try to get from header
+        const headerToken = response.headers.get('X-CSRF-Token');
+        if (headerToken) {
+            sessionStorage.setItem('csrfToken', headerToken);
+            return headerToken;
+        }
+        throw new Error('CSRF token not found');
+    } catch (err) {
+        console.error('Failed to fetch CSRF token:', err);
+        throw err;
+    }
+};
+
 const loginUser = async (credentials) => {
     try {
+        // Fetch CSRF token before login
+        await fetchCSRFToken();
+
         console.log("Logging in with credentials:", credentials);
         const response = await API.post("/auth/login", credentials);
 
@@ -205,7 +232,7 @@ const setUser = () => {
 // Export all functions
 export {
     clearUserData,
-    clearUserData as clearToken, // Alias for compatibility
+    clearUserData as clearToken,
     getToken,
     getRefreshToken,
     getUser,

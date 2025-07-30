@@ -45,14 +45,19 @@ class AuthController {
             if (user.mfaEnabled) {
                 // Generate a temporary token for MFA verification
                 const tempToken = jwt.sign(
-                    { 
-                        userId: user._id, 
+                    {
+                        userId: user._id,
                         email: user.email,
-                        purpose: 'mfa_verification' 
+                        purpose: 'mfa_verification'
                     },
                     process.env.JWT_SECRET,
                     { expiresIn: '5m' } // Short-lived token for MFA verification
                 );
+
+                // Generate CSRF token for MFA step as well (optional)
+                const { generateCSRFToken } = require('../middleware/csrfProtection');
+                const csrfToken = generateCSRFToken(user._id);
+                res.setHeader('X-CSRF-Token', csrfToken);
 
                 return res.status(200).json({
                     success: true,
@@ -69,7 +74,12 @@ class AuthController {
 
             // Generate tokens for non-MFA login
             const { accessToken, refreshToken } = await this.generateAndSendTokens(user, res, ipAddress, userAgent);
-            
+
+            // Generate CSRF token after successful login
+            const { generateCSRFToken } = require('../middleware/csrfProtection');
+            const csrfToken = generateCSRFToken(user._id);
+            res.setHeader('X-CSRF-Token', csrfToken);
+
             // Return user data with tokens
             res.status(200).json({
                 success: true,
@@ -176,9 +186,9 @@ class AuthController {
     static async verifyMfaLogin(req, res) {
         try {
             console.log('MFA Verification - Request Body:', JSON.stringify(req.body, null, 2));
-            
+
             const { token, tempToken } = req.body;
-            
+
             if (!token || !tempToken) {
                 console.error('MFA Verification - Missing token or tempToken');
                 return res.status(400).json({
@@ -193,7 +203,7 @@ class AuthController {
                 // Verify temp token
                 decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
                 console.log('MFA Verification - Decoded token:', JSON.stringify(decoded, null, 2));
-                
+
                 if (decoded.purpose !== 'mfa_verification') {
                     console.error('MFA Verification - Invalid token purpose:', decoded.purpose);
                     return res.status(400).json({
@@ -234,7 +244,7 @@ class AuthController {
             console.log('MFA Verification - Verifying token for user:', user.email);
             console.log('MFA Verification - MFA Secret (first 5 chars):', user.mfaSecret ? user.mfaSecret.substring(0, 5) + '...' : 'undefined');
             console.log('MFA Verification - Token received:', token);
-            
+
             if (!user.mfaSecret) {
                 console.error('MFA Verification - No MFA secret found for user');
                 return res.status(400).json({
@@ -243,44 +253,44 @@ class AuthController {
                     code: 'MFA_NOT_SET_UP'
                 });
             }
-            
+
             // Generate current and previous/next tokens to account for clock drift
             const currentToken = speakeasy.totp({
                 secret: user.mfaSecret,
                 encoding: 'base32',
                 step: 30
             });
-            
+
             const previousToken = speakeasy.totp({
                 secret: user.mfaSecret,
                 encoding: 'base32',
                 step: 30,
                 time: Date.now() - 30000 // Previous 30-second window
             });
-            
+
             const nextToken = speakeasy.totp({
                 secret: user.mfaSecret,
                 encoding: 'base32',
                 step: 30,
                 time: Date.now() + 30000 // Next 30-second window
             });
-            
+
             console.log('MFA Verification - Current token window:', {
                 previous: previousToken,
                 current: currentToken,
                 next: nextToken
             });
-            
+
             // Check if the provided token matches any of the valid tokens
             const tokenStr = token.toString().trim();
             const isValidToken = [previousToken, currentToken, nextToken].includes(tokenStr);
-            
+
             console.log('MFA Verification - Token validation result:', {
                 isValid: isValidToken,
                 receivedToken: tokenStr,
                 timestamp: new Date().toISOString()
             });
-            
+
             if (!isValidToken) {
                 return res.status(401).json({
                     success: false,
@@ -298,6 +308,11 @@ class AuthController {
             const ipAddress = req.ip;
             const userAgent = req.get('user-agent');
             const { accessToken, refreshToken } = await this.generateAndSendTokens(user, res, ipAddress, userAgent);
+
+            // Generate CSRF token after successful login
+            const { generateCSRFToken } = require('../middleware/csrfProtection');
+            const csrfToken = generateCSRFToken(user._id);
+            res.setHeader('X-CSRF-Token', csrfToken);
 
             // Return success response
             res.status(200).json({

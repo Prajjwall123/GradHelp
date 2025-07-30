@@ -10,6 +10,7 @@ const { forgotPasswordLimiter, resetPasswordLimiter, authLimiter } = require('..
 const mfaController = require('../controllers/mfaController');
 const { auth } = require('../middleware/auth');
 const validateRequest = require('../middleware/validateRequest');
+const { generateCSRFToken } = require('../middleware/csrfProtection');
 
 // Forgot password route
 router.post('/forgot-password',
@@ -36,6 +37,15 @@ router.post('/verify-otp',
     (req, res, next) => userController.verifyOTP(req, res, next)
 );
 
+// Public endpoint to get a CSRF token before login
+router.get('/csrf-token', (req, res) => {
+    // For unauthenticated users, use IP + UA as a pseudo-identifier (not ideal for production, but works for demo)
+    const identifier = req.ip + (req.get('user-agent') || '');
+    const token = generateCSRFToken(identifier);
+    res.setHeader('X-CSRF-Token', token);
+    res.json({ csrfToken: token });
+});
+
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get tokens
 // @access  Public
@@ -46,6 +56,7 @@ router.post(
         body('password', 'Password is required').exists()
     ],
     authLimiter,
+    require('../middleware/csrfProtection').verifyCSRFToken, // Enforce CSRF on login
     (req, res, next) => validateRequest(req, res, next),
     (req, res, next) => authController.login(req, res, next)
 );

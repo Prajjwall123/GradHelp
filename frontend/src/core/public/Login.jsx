@@ -7,7 +7,7 @@ import { Modal } from 'antd';
 import { useAuth } from "../../contexts/AuthContext";
 import API from "../../utils/api";
 import authApi from "../../services/authApi";
-import { setToken, setRefreshToken, setUser } from "../../utils/authHelper";
+import { setToken, setRefreshToken, setUser, fetchCSRFToken } from "../../utils/authHelper";
 import MfaVerification from "../../components/auth/MfaVerification";
 import { sanitizeInput } from "../../utils/sanitize";
 
@@ -75,6 +75,8 @@ const Login = () => {
         setError('');
 
         try {
+            // Fetch CSRF token before login
+            await fetchCSRFToken();
             console.log('Attempting login...');
             const response = await authApi.login({
                 email: sanitizedForm.email,

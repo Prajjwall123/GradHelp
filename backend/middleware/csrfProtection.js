@@ -23,27 +23,31 @@ const generateCSRFToken = (userId) => {
  */
 const verifyCSRFToken = (req, res, next) => {
     // Skip CSRF check for GET, HEAD, OPTIONS requests
-    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
         return next();
     }
 
-    const token = req.headers['x-csrf-token'] || req.body._csrf;
-    const userId = req.user?._id; // Assuming user is attached to request by auth middleware
+    const token = req.headers["x-csrf-token"] || req.body._csrf;
+    // Use userId if authenticated, else fallback to IP+UA for unauthenticated routes (like login)
+    let identifier = req.user?._id;
+    if (!identifier) {
+        identifier = req.ip + (req.get("user-agent") || "");
+    }
 
-    if (!userId || !token) {
+    if (!identifier || !token) {
         return res.status(403).json({
             success: false,
-            message: 'CSRF token is missing'
+            message: "CSRF token is missing"
         });
     }
 
-    const storedToken = csrfTokens.get(userId);
+    const storedToken = csrfTokens.get(identifier);
 
     // Check if token exists and is not expired
     if (!storedToken || storedToken.token !== token || storedToken.expiresAt < Date.now()) {
         return res.status(403).json({
             success: false,
-            message: 'Invalid or expired CSRF token'
+            message: "Invalid or expired CSRF token"
         });
     }
 
