@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Avatar, Dropdown, Typography, Badge, Button, Tooltip } from 'antd';
+import { Layout, Menu, theme, Avatar, Dropdown, Typography, Button, Tooltip } from 'antd';
 import {
     DashboardOutlined,
     UserOutlined,
@@ -10,9 +10,7 @@ import {
     UnorderedListOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    BellOutlined,
     LogoutOutlined,
-    SettingOutlined,
     QuestionCircleOutlined
 } from '@ant-design/icons';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -75,12 +73,6 @@ const AdminLayout = () => {
             icon: <UnorderedListOutlined />,
             label: 'System Logs',
             path: '/admin/logs'
-        },
-        {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: 'Settings',
-            path: '/admin/settings'
         }
     ];
 
@@ -233,13 +225,13 @@ const AdminLayout = () => {
                     </div>
 
                     <div className="header-right">
-                        <Badge count={5} size="small" className="notification-badge">
-                            <Button
-                                type="text"
-                                icon={<BellOutlined style={{ fontSize: '18px' }} />}
-                                className="notification-btn"
-                            />
-                        </Badge>
+                        <Button 
+                            type="primary" 
+                            onClick={() => navigate('/admin/dashboard')}
+                            style={{ marginRight: '10px' }}
+                        >
+                            Home
+                        </Button>
                     </div>
                 </Header>
 
@@ -259,8 +251,16 @@ const AdminLayout = () => {
                     </div>
                 </Content>
 
-                <Footer style={{ textAlign: 'center' }}>
-                    GradHelp Admin {new Date().getFullYear()} - All Rights Reserved
+                <Footer 
+                    style={{ 
+                        textAlign: 'center',
+                        background: '#fff',
+                        padding: '16px',
+                        borderTop: '1px solid #f0f0f0',
+                        fontWeight: 500
+                    }}
+                >
+                    <span style={{ color: colorPrimary }}>GradHelp</span> Admin Portal © {new Date().getFullYear()}
                 </Footer>
             </Layout>
         </Layout>

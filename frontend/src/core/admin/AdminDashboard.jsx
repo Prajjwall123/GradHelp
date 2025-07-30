@@ -66,12 +66,23 @@ const AdminDashboard = () => {
             dataIndex: 'message',
             key: 'message',
             ellipsis: true,
+            render: (text) => (
+                <span style={{ fontWeight: 500 }}>{text}</span>
+            )
         },
         {
             title: 'Method',
             dataIndex: 'method',
             key: 'method',
             width: 100,
+            render: (method) => (
+                <Tag 
+                    color={method === 'GET' ? 'blue' : method === 'POST' ? 'green' : method === 'PUT' ? 'orange' : method === 'DELETE' ? 'red' : 'default'}
+                    style={{ fontWeight: 500, borderRadius: '4px', padding: '2px 8px' }}
+                >
+                    {method}
+                </Tag>
+            )
         },
         {
             title: 'Path',
@@ -79,6 +90,9 @@ const AdminDashboard = () => {
             key: 'path',
             width: 150,
             ellipsis: true,
+            render: (text) => (
+                <code style={{ background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>{text}</code>
+            )
         },
         {
             title: 'Status',
@@ -86,7 +100,10 @@ const AdminDashboard = () => {
             key: 'statusCode',
             width: 100,
             render: (statusCode) => (
-                <Tag color={statusCode >= 400 ? 'red' : statusCode >= 300 ? 'orange' : 'green'}>
+                <Tag 
+                    color={statusCode >= 400 ? 'red' : statusCode >= 300 ? 'orange' : 'green'}
+                    style={{ fontWeight: 500, borderRadius: '4px', padding: '2px 8px' }}
+                >
                     {statusCode}
                 </Tag>
             ),
@@ -96,24 +113,37 @@ const AdminDashboard = () => {
             dataIndex: 'createdAt',
             key: 'timestamp',
             width: 180,
-            render: (text) => new Date(text).toLocaleString(),
+            render: (text) => (
+                <span style={{ color: '#8c8c8c' }}>{new Date(text).toLocaleString()}</span>
+            ),
         }
     ];
 
     return (
         <div className="admin-dashboard">
-            <h1>Admin Dashboard</h1>
+            <div style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '28px', fontWeight: 600, marginBottom: '24px' }}>Admin Dashboard</h1>
+            </div>
 
             {/* Statistics Cards */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+            <Row gutter={[20, 20]} style={{ marginBottom: '32px' }}>
                 {statCards.map((stat, index) => (
                     <Col xs={24} sm={12} lg={6} key={index}>
-                        <Card>
+                        <Card 
+                            hoverable 
+                            style={{ 
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.3s ease',
+                                borderTop: `3px solid ${stat.color}`
+                            }}
+                        >
                             <Statistic
-                                title={stat.title}
+                                title={<span style={{ fontSize: '16px', fontWeight: 500 }}>{stat.title}</span>}
                                 value={stat.value}
                                 prefix={stat.icon}
-                                valueStyle={{ color: stat.color }}
+                                valueStyle={{ color: stat.color, fontSize: '28px', fontWeight: 600 }}
                             />
                         </Card>
                     </Col>
@@ -121,23 +151,51 @@ const AdminDashboard = () => {
             </Row>
 
             {/* Quick Actions */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+            <Row gutter={[20, 20]} style={{ marginBottom: '32px' }}>
                 <Col span={24}>
-                    <Card title="Quick Actions">
-                        <Space>
-                            <Button type="primary" onClick={() => navigate('/admin/applications')}>
+                    <Card 
+                        title={<span style={{ fontSize: '18px', fontWeight: 500 }}>Quick Actions</span>}
+                        style={{ 
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+                        }}
+                    >
+                        <Space size="middle" wrap>
+                            <Button 
+                                type="primary" 
+                                size="large"
+                                onClick={() => navigate('/admin/applications')}
+                                style={{ borderRadius: '6px', height: '42px', fontWeight: 500 }}
+                            >
                                 View Applications
                             </Button>
-                            <Button onClick={() => navigate('/admin/universities')}>
+                            <Button 
+                                size="large"
+                                onClick={() => navigate('/admin/universities')}
+                                style={{ borderRadius: '6px', height: '42px', fontWeight: 500 }}
+                            >
                                 Manage Universities
                             </Button>
-                            <Button onClick={() => navigate('/admin/courses')}>
+                            <Button 
+                                size="large"
+                                onClick={() => navigate('/admin/courses')}
+                                style={{ borderRadius: '6px', height: '42px', fontWeight: 500 }}
+                            >
                                 Manage Courses
                             </Button>
-                            <Button onClick={() => navigate('/admin/scholarships')}>
+                            <Button 
+                                size="large"
+                                onClick={() => navigate('/admin/scholarships')}
+                                style={{ borderRadius: '6px', height: '42px', fontWeight: 500 }}
+                            >
                                 Manage Scholarships
                             </Button>
-                            <Button onClick={() => navigate('/admin/logs')}>
+                            <Button 
+                                size="large"
+                                onClick={() => navigate('/admin/logs')}
+                                style={{ borderRadius: '6px', height: '42px', fontWeight: 500 }}
+                            >
                                 View Logs
                             </Button>
                         </Space>
@@ -149,13 +207,20 @@ const AdminDashboard = () => {
             <Row>
                 <Col span={24}>
                     <Card
-                        title="Recent Activity"
+                        title={<span style={{ fontSize: '18px', fontWeight: 500 }}>Recent Activity</span>}
                         loading={loading}
+                        style={{ 
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+                        }}
                         extra={
                             <Button
-                                type="link"
+                                type="primary"
+                                ghost
                                 icon={<ReloadOutlined />}
                                 onClick={() => window.location.reload()}
+                                style={{ borderRadius: '6px', fontWeight: 500 }}
                             >
                                 Refresh
                             </Button>
@@ -171,10 +236,12 @@ const AdminDashboard = () => {
                             pagination={{
                                 pageSize: 5,
                                 showSizeChanger: false,
-                                hideOnSinglePage: true
+                                hideOnSinglePage: true,
+                                style: { marginTop: '16px' }
                             }}
-                            size="small"
+                            size="middle"
                             scroll={{ x: true }}
+                            style={{ borderRadius: '8px', overflow: 'hidden' }}
                         />
                     </Card>
                 </Col>
