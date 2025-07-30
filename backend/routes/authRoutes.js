@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
+const userController = require('../controllers/userController');
 const passwordResetController = require('../controllers/passwordResetController');
 const { forgotPasswordSchema, resetPasswordSchema } = require('../validations/userValidation');
 const validate = require('../middleware/validation');
@@ -24,6 +25,16 @@ router.post('/reset-password',
     passwordResetController.resetPassword
 );
 
+// Verify OTP for registration
+router.post('/verify-otp',
+    [
+        body('email', 'Please include a valid email').isEmail(),
+        body('otp', 'OTP is required').notEmpty()
+    ],
+    authLimiter,
+    (req, res, next) => validateRequest(req, res, next),
+    (req, res, next) => userController.verifyOTP(req, res, next)
+);
 
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get tokens

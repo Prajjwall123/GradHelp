@@ -98,7 +98,7 @@ const loginUser = async (credentials) => {
 
             const isNewUser = localStorage.getItem('isNewUser') === 'true';
             localStorage.removeItem('isNewUser');
-            
+
             // Get user data from the token, not from response
             const userData = getUser();
 
@@ -137,24 +137,34 @@ const verifyOTP = async (payload) => {
     try {
         const response = await API.post("/auth/verify-otp", payload);
 
-        if (response.data && response.data.access_token && response.data.refresh_token) {
-            // Store access token in localStorage
-            setToken(response.data.access_token);
+        if (response.data && response.data.success) {
+            // For registration success, return success status for redirection
+            if (response.data.message === "Registration successful") {
+                return {
+                    success: true,
+                    redirectTo: '/login',
+                    message: response.data.message
+                };
+            }
 
-            // Store refresh token in HTTP-only cookie
-            setRefreshToken(response.data.refresh_token);
-            
-            // Get user data from the token, not from response
-            const userData = getUser();
+            // For other OTP verifications (like password reset)
+            if (response.data.access_token && response.data.refresh_token) {
+                // Store access token in localStorage
+                setToken(response.data.access_token);
+                // Store refresh token in HTTP-only cookie
+                setRefreshToken(response.data.refresh_token);
+                // Get user data from the token
+                const userData = getUser();
 
-            return {
-                success: true,
-                message: 'OTP verified successfully',
-                user: userData // Use user data from token
-            };
+                return {
+                    success: true,
+                    message: 'OTP verified successfully',
+                    user: userData
+                };
+            }
         }
 
-        throw new Error('Invalid OTP or session expired');
+        throw new Error(response.data?.message || 'Invalid OTP or session expired');
 
     } catch (error) {
         console.error("Error verifying OTP:", error);

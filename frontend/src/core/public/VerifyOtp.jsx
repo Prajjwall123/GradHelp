@@ -44,14 +44,19 @@ const VerifyOtp = () => {
         }
         setLoading(true);
         try {
-            await verifyOTP({ email, otp: otpCode });
-            toast.success("Account verified successfully! Please log in.");
-            navigate("/login", {
-                state: {
-                    email: email,
-                    fromVerify: true
-                }
-            });
+            const result = await verifyOTP({ email, otp: otpCode });
+
+            if (result.redirectTo) {
+                // For registration success, redirect to login with success message
+                toast.success("Registration successful! Please log in.");
+                navigate(result.redirectTo, {
+                    state: { email, fromVerify: true }
+                });
+            } else {
+                // For other OTP verifications (like password reset)
+                toast.success("OTP verified successfully!");
+                // Handle other OTP verification flows if needed
+            }
         } catch (err) {
             toast.error(err?.response?.data?.message || "Failed to verify OTP. Please try again.");
         } finally {

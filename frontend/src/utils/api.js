@@ -64,7 +64,7 @@ API.interceptors.response.use(
             } catch (error) {
                 // Refresh token failed, clear tokens and redirect to login
                 clearToken();
-                window.location.href = '/login';
+                // window.location.href = '/login';
                 return Promise.reject(error);
             }
         }
