@@ -8,46 +8,50 @@ const UserSchema = new mongoose.Schema({
         hashedPassword: { type: String, required: true },
         changedAt: { type: Date, default: Date.now }
     }],
-    passwordChangedAt: { 
-        type: Date, 
+    passwordChangedAt: {
+        type: Date,
         default: Date.now,
         select: false
     },
     passwordExpiresAt: {
         type: Date,
-        default: () => new Date(+new Date() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
+        default: () => new Date(+new Date() + 45 * 24 * 60 * 60 * 1000),
         select: false
+    },
+    premium: {
+        type: Boolean,
+        default: false
     },
     role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
     },
-    mfaEnabled: { 
-        type: Boolean, 
-        default: false 
+    mfaEnabled: {
+        type: Boolean,
+        default: false
     },
-    mfaSecret: { 
-        type: String, 
-        select: false 
+    mfaSecret: {
+        type: String,
+        select: false
     },
-    backupCodes: [{ 
-        code: { 
-            type: String, 
-            select: false 
+    backupCodes: [{
+        code: {
+            type: String,
+            select: false
         },
-        used: { 
-            type: Boolean, 
-            default: false 
+        used: {
+            type: Boolean,
+            default: false
         }
     }],
     isNewUser: {
         type: Boolean,
         default: true
     },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 

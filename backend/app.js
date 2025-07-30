@@ -25,6 +25,7 @@ const fileRoutes = require('./routes/fileRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const logRoutes = require('./routes/logRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Connect to database
 connectDB();
@@ -74,8 +75,9 @@ app.use("/api/scholarship-applications", scholarshipApplicationRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/logs", logRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

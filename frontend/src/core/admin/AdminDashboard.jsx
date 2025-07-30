@@ -11,7 +11,7 @@ import {
     ClockCircleOutlined,
     ReloadOutlined
 } from '@ant-design/icons';
-import api from '../../services/api';
+import API from '../../utils/api';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
@@ -21,7 +21,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await api.get('/admin/stats');
+                const response = await API.get('/admin/stats');
                 setStats(response.data.data);
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
@@ -148,13 +148,13 @@ const AdminDashboard = () => {
             {/* Recent Activity */}
             <Row>
                 <Col span={24}>
-                    <Card 
-                        title="Recent Activity" 
+                    <Card
+                        title="Recent Activity"
                         loading={loading}
                         extra={
-                            <Button 
-                                type="link" 
-                                icon={<ReloadOutlined />} 
+                            <Button
+                                type="link"
+                                icon={<ReloadOutlined />}
                                 onClick={() => window.location.reload()}
                             >
                                 Refresh
@@ -168,7 +168,7 @@ const AdminDashboard = () => {
                                 key: item._id
                             })) || []}
                             rowKey="_id"
-                            pagination={{ 
+                            pagination={{
                                 pageSize: 5,
                                 showSizeChanger: false,
                                 hideOnSinglePage: true

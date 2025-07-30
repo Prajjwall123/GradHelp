@@ -28,6 +28,7 @@ const ContactUs = lazy(() => import("./core/public/ContactUs"));
 const Help = lazy(() => import("./core/public/Help"));
 const PageNotFound = lazy(() => import('./core/public/PageNotFound'));
 const Unauthorized = lazy(() => import("./core/public/Unauthorized"));
+const MyPlan = lazy(() => import("./core/private/MyPlan"));
 
 // Admin Components
 const AdminLayout = lazy(() => import("./core/admin/AdminLayout"));
@@ -61,6 +62,7 @@ function App() {
   const protectedRoutes = [
     { path: "/", element: <Suspense fallback={<div>Loading...</div>}><Dashboard /></Suspense> },
     { path: "/profile", element: <Suspense fallback={<div>Loading...</div>}><ProfileStepper /></Suspense> },
+    { path: "/my-plan", element: <Suspense fallback={<div>Loading...</div>}><MyPlan /></Suspense> },
     { path: "/my-applications", element: <Suspense fallback={<div>Loading...</div>}><Applications /></Suspense> },
     { path: "/sop-writer", element: <Suspense fallback={<div>Loading...</div>}><SOPWriter /></Suspense> },
     { path: "/settings/security", element: <Suspense fallback={<div>Loading...</div>}><SecuritySettings /></Suspense> },

@@ -312,12 +312,45 @@ const deleteUser = async (req, res) => {
     }
 };
 
+/**
+ * Get current user's premium status
+ * @route GET /api/users/premium-status
+ * @access Private
+ */
+const getPremiumStatus = async (req, res) => {
+    try {
+        // The auth middleware adds the user to req.user
+        const user = await User.findById(req.user._id).select('premium');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+                code: 'USER_NOT_FOUND'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            isPremium: user.premium || false
+        });
+    } catch (error) {
+        console.error('Error fetching premium status:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching premium status',
+            code: 'SERVER_ERROR'
+        });
+    }
+};
+
 module.exports = {
     register,
     verifyOTP,
     login,
+    getAllUsers,
+    getUserById,
     updateUser,
     deleteUser,
-    getAllUsers,
-    getUserById
+    getPremiumStatus
 };

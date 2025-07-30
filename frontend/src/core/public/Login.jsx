@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal } from 'antd';
 import { useAuth } from "../../contexts/AuthContext";
-import api from "../../services/api";
+import API from "../../utils/api";
 import authApi from "../../services/authApi";
 import { setToken, setRefreshToken, setUser } from "../../utils/authHelper";
 import MfaVerification from "../../components/auth/MfaVerification";
@@ -47,7 +47,7 @@ const Login = () => {
 
     const handleLoginSuccess = (userData, tokens) => {
         const { accessToken, refreshToken, user } = tokens || userData;
-        
+
         // Store tokens and user data
         if (accessToken) setToken(accessToken);
         if (refreshToken) setRefreshToken(refreshToken);
@@ -122,7 +122,7 @@ const Login = () => {
             tempToken: '',
             user: null
         });
-        
+
         // Proceed with login using the returned data
         handleLoginSuccess(data);
     };
@@ -149,7 +149,7 @@ const Login = () => {
                 closable={false}
                 maskClosable={false}
             >
-                <MfaVerification 
+                <MfaVerification
                     tempToken={mfaVerification.tempToken}
                     user={mfaVerification.user}
                     onBack={handleMfaBackToLogin}

@@ -16,19 +16,28 @@ api.interceptors.request.use(
         const token = getToken();
         const csrfToken = localStorage.getItem('csrfToken');
 
+        console.log('API Request - Token exists:', !!token);
+        console.log('API Request - URL:', config.url);
+        console.log('API Request - Headers:', config.headers);
+
         // Add Authorization header if token exists
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+            console.log('Added Authorization header with token');
+        } else {
+            console.warn('No token found for request to', config.url);
         }
 
         // Add CSRF token for state-changing requests
         if (csrfToken && ['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
             config.headers['X-CSRF-Token'] = csrfToken;
+            console.log('Added CSRF token to request');
         }
 
         return config;
     },
     (error) => {
+        console.error('Request interceptor error:', error);
         return Promise.reject(error);
     }
 );
@@ -36,14 +45,21 @@ api.interceptors.request.use(
 // Response interceptor to handle token refresh and CSRF token updates
 api.interceptors.response.use(
     (response) => {
+        console.log('API Response - Status:', response.status, response.statusText);
+        console.log('API Response - Headers:', response.headers);
+
         // Check for new CSRF token in response headers
         const csrfToken = response.headers['x-csrf-token'];
         if (csrfToken) {
             localStorage.setItem('csrfToken', csrfToken);
+            console.log('Updated CSRF token from response');
         }
         return response;
     },
     async (error) => {
+        console.error('API Error:', error);
+        console.error('API Error Response:', error.response);
+
         const originalRequest = error.config;
 
         // If error is 401 and we haven't already tried to refresh

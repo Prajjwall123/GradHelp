@@ -3,7 +3,7 @@ import { Tabs, Table, Card, Tag, Button, Space, Badge, message, Modal, Typograph
 const { TextArea } = Input;
 import { FileDoneOutlined, DollarOutlined, CheckOutlined, CloseOutlined, UploadOutlined } from '@ant-design/icons';
 const { Text } = Typography;
-import api from '../../services/api';
+import API from '../../utils/api';
 
 const { TabPane } = Tabs;
 
@@ -11,8 +11,8 @@ const AdminApplications = () => {
   const [activeTab, setActiveTab] = useState('university');
   const [universityApps, setUniversityApps] = useState([]);
   const [scholarshipApps, setScholarshipApps] = useState([]);
-  const [loading, setLoading] = useState({ 
-    university: false, 
+  const [loading, setLoading] = useState({
+    university: false,
     scholarship: false,
     accept: false,
     reject: false
@@ -35,8 +35,8 @@ const AdminApplications = () => {
       title: 'Applicant',
       key: 'applicant',
       render: (_, record) => (
-        <Button 
-          type="link" 
+        <Button
+          type="link"
           onClick={() => showApplicationDetails(record)}
           className="p-0"
         >
@@ -57,9 +57,9 @@ const AdminApplications = () => {
       key: 'status',
       render: (status) => (
         <Tag color={
-          status === 'accepted' ? 'green' : 
-          status === 'rejected' ? 'red' : 
-          status === 'pending' ? 'orange' : 'blue'
+          status === 'accepted' ? 'green' :
+            status === 'rejected' ? 'red' :
+              status === 'pending' ? 'orange' : 'blue'
         }>
           {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
         </Tag>
@@ -77,9 +77,9 @@ const AdminApplications = () => {
       width: 200,
       render: (_, record) => (
         <Space>
-          <Button 
-            type="primary" 
-            size="small" 
+          <Button
+            type="primary"
+            size="small"
             icon={<CheckOutlined />}
             onClick={(e) => {
               e.stopPropagation();
@@ -90,9 +90,9 @@ const AdminApplications = () => {
           >
             {record.status === 'accepted' ? 'Accepted' : 'Accept'}
           </Button>
-          <Button 
-            danger 
-            size="small" 
+          <Button
+            danger
+            size="small"
             icon={<CloseOutlined />}
             onClick={(e) => {
               e.stopPropagation();
@@ -112,30 +112,30 @@ const AdminApplications = () => {
   const fetchApplications = async (type) => {
     try {
       setLoading(prev => ({ ...prev, [type]: true }));
-      
+
       if (type === 'university') {
         // Get all applications for admin
-        const response = await api.get('/applications/admin/all');
-        
+        const response = await API.get('/applications/admin/all');
+
         // Transform the data to match the expected format
         const formattedData = response.data.map(app => ({
           ...app,
           user: app.profile?.user || { fullName: 'Unknown' },
           status: app.status || 'pending'
         }));
-        
+
         setUniversityApps(formattedData);
       } else {
         // Get all scholarship applications for admin
-        const response = await api.get('/scholarship-applications');
-        
+        const response = await API.get('/scholarship-applications');
+
         // Transform the data to match the expected format
         const formattedData = response.data.map(app => ({
           ...app,
           user: app.profile?.user || { fullName: 'Unknown' },
           status: app.status || 'pending'
         }));
-        
+
         setScholarshipApps(formattedData);
       }
     } catch (error) {
@@ -151,40 +151,40 @@ const AdminApplications = () => {
   const handleAccept = async (applicationId) => {
     try {
       setLoading(prev => ({ ...prev, accept: true }));
-      
+
       const formData = new FormData();
       formData.append('message', 'Your application has been accepted.');
-      
+
       // Add file if uploaded
       if (fileList.length > 0) {
         formData.append('file', fileList[0].originFileObj);
       }
-      
-      await api.post(`/application-decisions/${applicationId}/accept`, formData, {
+
+      await API.post(`/application-decisions/${applicationId}/accept`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       // Update the local state to reflect the change
       if (activeTab === 'university') {
-        setUniversityApps(prev => 
-          prev.map(app => 
-            app._id === applicationId 
-              ? { ...app, status: 'accepted' } 
+        setUniversityApps(prev =>
+          prev.map(app =>
+            app._id === applicationId
+              ? { ...app, status: 'accepted' }
               : app
           )
         );
       } else {
-        setScholarshipApps(prev => 
-          prev.map(app => 
-            app._id === applicationId 
-              ? { ...app, status: 'accepted' } 
+        setScholarshipApps(prev =>
+          prev.map(app =>
+            app._id === applicationId
+              ? { ...app, status: 'accepted' }
               : app
           )
         );
       }
-      
+
       message.success('Application accepted successfully');
       setFileList([]);
     } catch (error) {
@@ -217,40 +217,40 @@ const AdminApplications = () => {
 
     try {
       setLoading(prev => ({ ...prev, reject: true }));
-      
+
       const formData = new FormData();
       formData.append('message', rejectReason);
-      
+
       // Add file if uploaded
       if (fileList.length > 0) {
         formData.append('file', fileList[0].originFileObj);
       }
-      
-      await api.post(`/application-decisions/${selectedApp._id}/reject`, formData, {
+
+      await API.post(`/application-decisions/${selectedApp._id}/reject`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       // Update the local state to reflect the change
       if (activeTab === 'university') {
-        setUniversityApps(prev => 
-          prev.map(app => 
-            app._id === selectedApp._id 
-              ? { ...app, status: 'rejected' } 
+        setUniversityApps(prev =>
+          prev.map(app =>
+            app._id === selectedApp._id
+              ? { ...app, status: 'rejected' }
               : app
           )
         );
       } else {
-        setScholarshipApps(prev => 
-          prev.map(app => 
-            app._id === selectedApp._id 
-              ? { ...app, status: 'rejected' } 
+        setScholarshipApps(prev =>
+          prev.map(app =>
+            app._id === selectedApp._id
+              ? { ...app, status: 'rejected' }
               : app
           )
         );
       }
-      
+
       message.success('Application rejected successfully');
       setRejectModalVisible(false);
       setRejectReason('');
@@ -271,8 +271,8 @@ const AdminApplications = () => {
 
   // Load data when tab changes
   useEffect(() => {
-    if ((activeTab === 'university' && universityApps.length === 0) || 
-        (activeTab === 'scholarship' && scholarshipApps.length === 0)) {
+    if ((activeTab === 'university' && universityApps.length === 0) ||
+      (activeTab === 'scholarship' && scholarshipApps.length === 0)) {
       fetchApplications(activeTab);
     }
   }, [activeTab]);
