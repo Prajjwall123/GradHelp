@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import ReCAPTCHA from "react-google-recaptcha";
 import { registerUser } from "../../utils/authHelper";
 import logo from "../../assets/logo.png";
 import register from "../../assets/register.png";
@@ -42,12 +43,14 @@ const getStrengthColor = (strength) => {
 
 const Register = () => {
     const navigate = useNavigate();
+    const recaptchaRef = useRef(null);
     const [form, setForm] = useState({
         fullName: "",
         email: "",
         password: "",
         confirmPassword: "",
     });
+    const [recaptchaValue, setRecaptchaValue] = useState(null);
     const [passwordFocused, setPasswordFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -95,24 +98,55 @@ const Register = () => {
             return false;
         }
 
+        if (!recaptchaValue) {
+            toast.error("Please complete the CAPTCHA verification");
+            return false;
+        }
+
         return true;
+    };
+
+    const onRecaptchaChange = (value) => {
+        setRecaptchaValue(value);
+    };
+
+    const onRecaptchaExpired = () => {
+        setRecaptchaValue(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!validateForm()) return;
 
         setLoading(true);
         try {
-            await registerUser({
-                full_name: form.fullName,
-                email: form.email,
+            const userData = {
+                full_name: form.fullName.trim(),
+                email: form.email.trim().toLowerCase(),
                 password: form.password,
-            });
-            toast.success("Registration successful! Please verify your email.");
-            navigate("/verify-otp", { state: { email: form.email } });
-        } catch (err) {
-            toast.error(err?.response?.data?.message || err?.message || "Registration failed. Please try again.");
+                recaptchaToken: recaptchaValue // Send the recaptcha token to the backend
+            };
+
+            await registerUser(userData);
+
+            // Reset the reCAPTCHA after successful submission
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+                setRecaptchaValue(null);
+            }
+
+            toast.success("Registration successful! Please check your email for OTP.");
+            navigate("/verify-otp", { state: { email: form.email.trim().toLowerCase() } });
+        } catch (error) {
+            console.error("Registration error:", error);
+            toast.error(error.response?.data?.message || "Registration failed. Please try again.");
+
+            // Reset the reCAPTCHA on error
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+                setRecaptchaValue(null);
+            }
         } finally {
             setLoading(false);
         }
@@ -253,6 +287,17 @@ const Register = () => {
                             {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
                                 <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
                             )}
+                        </div>
+
+                        {/* Add reCAPTCHA before the submit button */}
+                        <div className="flex justify-center my-4">
+                            <ReCAPTCHA
+                                ref={recaptchaRef}
+                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                onChange={onRecaptchaChange}
+                                onExpired={onRecaptchaExpired}
+                                className="w-full flex justify-center"
+                            />
                         </div>
 
                         <button
