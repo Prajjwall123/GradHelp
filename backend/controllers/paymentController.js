@@ -2,7 +2,7 @@ const axios = require('axios');
 const User = require('../models/user');
 
 // Khalti configuration
-const KHALTI_SECRET_KEY = '30b1378dd0a94714b1bb34494df6ee02'; 
+const KHALTI_SECRET_KEY = '30b1378dd0a94714b1bb34494df6ee02';
 const KHALTI_BASE_URL = 'https://dev.khalti.com/api/v2';
 
 console.log('Khalti Configuration:', {
@@ -200,7 +200,7 @@ const verifyPayment = async (req, res) => {
 
         if (verificationResponse.data.status === 'Completed') {
             // Update user's premium status
-            user.isPremium = true;
+            user.premium = true;
             user.premiumSince = new Date();
             user.payment = {
                 ...user.payment,
@@ -209,15 +209,19 @@ const verifyPayment = async (req, res) => {
                 completedAt: new Date(),
             };
 
-            await user.save();
+            await user.save({ validateBeforeSave: false });
 
-            console.log('Payment verification successful - User upgraded to premium');
+            console.log('Payment verification successful - User upgraded to premium', {
+                userId: user._id,
+                premium: user.premium,
+                premiumSince: user.premiumSince
+            });
 
             return res.status(200).json({
                 success: true,
                 message: 'Payment verified and user upgraded to premium.',
                 data: {
-                    isPremium: true,
+                    premium: true,
                     premiumSince: user.premiumSince,
                 },
             });
