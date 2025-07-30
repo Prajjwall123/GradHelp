@@ -1,0 +1,239 @@
+/* Admin Layout Styles */
+
+/* Base Layout */
+.admin-layout {
+  min-height: 100vh;
+  background-color: #f0f2f5;
+}
+
+/* Sidebar Styles */
+.admin-sider {
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+  z-index: 10;
+  transition: all 0.2s;
+  background: #fff !important;
+}
+
+/* Logo Section */
+.admin-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.logo-collapsed {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
+.logo-expanded {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  padding: 0 16px;
+}
+
+/* User Info Section */
+.admin-user-info {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.user-details {
+  margin-left: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.user-name {
+  display: block;
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.user-role {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Menu Styles */
+.admin-menu {
+  border-right: none !important;
+  padding: 8px 0;
+}
+
+.admin-menu .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 4px;
+  height: 40px;
+  line-height: 40px;
+  transition: all 0.3s;
+}
+
+.admin-menu .ant-menu-item:hover {
+  color: #1890ff;
+}
+
+.admin-menu .ant-menu-item-selected {
+  background-color: #e6f7ff !important;
+  font-weight: 500;
+}
+
+.admin-menu .ant-menu-item .ant-menu-item-icon {
+  font-size: 16px;
+}
+
+/* Content Area */
+.site-layout {
+  transition: all 0.2s;
+  background: #f0f2f5;
+}
+
+/* Header Styles */
+.admin-header {
+  padding: 0 24px;
+  background: #fff !important;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  z-index: 9;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Content Styles */
+.admin-content {
+  margin: 24px 16px;
+  padding: 24px;
+  min-height: 280px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+
+.collapse-btn {
+  font-size: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.collapse-btn:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+/* Notification Badge */
+.notification-badge {
+  cursor: pointer;
+}
+
+.notification-btn {
+  font-size: 18px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.notification-btn:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .admin-sider {
+    position: fixed !important;
+    z-index: 1000;
+    height: 100vh;
+  }
+  
+  .site-layout {
+    margin-left: 0 !important;
+  }
+  
+  .admin-content {
+    margin: 16px 8px;
+    padding: 16px;
+  }
+}
+
+/* Animation for page transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.content-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

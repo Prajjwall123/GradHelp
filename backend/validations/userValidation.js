@@ -6,7 +6,6 @@ const emailSchema = Joi.string().email().required().messages({
     'any.required': 'Email is required'
 });
 
-// Simplified password validation
 const passwordSchema = Joi.string()
     .min(8)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d\s:]).*$/)

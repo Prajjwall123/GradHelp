@@ -1,5 +1,5 @@
 import './App.css'
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -75,7 +75,6 @@ function App() {
     { path: "/course/:id", element: <Suspense fallback={<div>Loading...</div>}><CourseDetail /></Suspense> },
   ];
 
-  // Admin routes (protected and admin role required)
   const adminRoutes = [
     {
       path: "/admin",
@@ -87,16 +86,19 @@ function App() {
         </PrivateRoute>
       ),
       children: [
-        { index: true, element: <AdminDashboard /> },
+        { index: true, element: <Navigate to="dashboard" replace /> },
+        { path: "dashboard", element: <AdminDashboard /> },
+        { path: "users", element: <AdminUsers /> },
         { path: "applications", element: <AdminApplications /> },
         { path: "universities", element: <AdminUniversities /> },
         { path: "courses", element: <AdminCourses /> },
         { path: "scholarships", element: <AdminScholarships /> },
-        { path: "users", element: <AdminUsers /> },
         { path: "logs", element: <AdminLogs /> },
+        { path: "*", element: <Navigate to="dashboard" replace /> }
       ]
     }
   ];
+
 
   // Create the router configuration
   const router = createBrowserRouter([

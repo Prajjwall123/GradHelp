@@ -31,7 +31,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 connectDB();
 
 const corsOptions = {
-    origin: ["http://localhost:5173", "https://localhost:5173"],
+    origin: ["https://localhost:5173"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
