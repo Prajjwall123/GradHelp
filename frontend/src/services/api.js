@@ -105,7 +105,7 @@ api.interceptors.response.use(
                 // Refresh token failed, clear everything and redirect to login
                 clearToken();
                 localStorage.removeItem('csrfToken');
-                window.location.href = '/login';
+                // window.location.href = '/login';
                 return Promise.reject(error);
             }
         }

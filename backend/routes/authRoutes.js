@@ -5,7 +5,7 @@ const authController = require('../controllers/authController');
 const passwordResetController = require('../controllers/passwordResetController');
 const { forgotPasswordSchema, resetPasswordSchema } = require('../validations/userValidation');
 const validate = require('../middleware/validation');
-const { forgotPasswordLimiter, resetPasswordLimiter } = require('../middleware/rateLimiter');
+const { forgotPasswordLimiter, resetPasswordLimiter, authLimiter } = require('../middleware/rateLimiter');
 const mfaController = require('../controllers/mfaController');
 const { auth } = require('../middleware/auth');
 const validateRequest = require('../middleware/validateRequest');
@@ -34,6 +34,7 @@ router.post(
         body('email', 'Please include a valid email').isEmail(),
         body('password', 'Password is required').exists()
     ],
+    authLimiter,
     (req, res, next) => validateRequest(req, res, next),
     (req, res, next) => authController.login(req, res, next)
 );
@@ -62,15 +63,15 @@ router.get('/mfa/status',
 // @route   GET /api/auth/mfa/setup
 // @desc    Generate MFA secret and QR code
 // @access  Private
-router.get('/mfa/setup', 
-    auth, 
+router.get('/mfa/setup',
+    auth,
     (req, res, next) => mfaController.setupMFA(req, res, next)
 );
 
 // @route   POST /api/auth/mfa/verify
 // @desc    Verify MFA setup
 // @access  Private
-router.post('/mfa/verify', 
+router.post('/mfa/verify',
     auth,
     [
         body('token', 'Token is required').isLength({ min: 6, max: 6 }),

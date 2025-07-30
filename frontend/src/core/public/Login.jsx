@@ -9,6 +9,7 @@ import API from "../../utils/api";
 import authApi from "../../services/authApi";
 import { setToken, setRefreshToken, setUser } from "../../utils/authHelper";
 import MfaVerification from "../../components/auth/MfaVerification";
+import { sanitizeInput } from "../../utils/sanitize";
 
 // Import images using Vite's import.meta.glob
 const logo = new URL('../../assets/logo.png', import.meta.url).href;
@@ -42,11 +43,102 @@ const Login = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        // Sanitize input before updating state
+        const sanitizedValue = sanitizeInput(value);
+        setForm(prev => ({ ...prev, [name]: sanitizedValue }));
     };
 
-    const handleLoginSuccess = (userData, tokens) => {
-        const { accessToken, refreshToken, user } = tokens || userData;
+    const handleSubmit = async (e) => {
+        // Sanitize inputs before submission
+        const sanitizedForm = {
+            email: sanitizeInput(form.email).trim(),
+            password: sanitizeInput(form.password)
+        };
+
+        // Basic validation
+        if (!sanitizedForm.email || !sanitizedForm.password) {
+            toast.error('Please enter both email and password');
+            return false;
+        }
+
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(sanitizedForm.email)) {
+            toast.error('Please enter a valid email address');
+            return false;
+        }
+
+        setLoading(true);
+
+        try {
+            console.log('Attempting login...');
+            const response = await authApi.login({
+                email: sanitizedForm.email,
+                password: sanitizedForm.password,
+            });
+
+            if (!response) {
+                throw new Error('No response from server');
+            }
+
+            if (response.data.requiresMFA) {
+                console.log('MFA required');
+                setMfaVerification({
+                    show: true,
+                    tempToken: response.data.tempToken,
+                    user: response.data.user
+                });
+                return false;
+            }
+
+            if (response.data) {
+                console.log('Login successful, handling success...');
+                const { accessToken, refreshToken, user } = response.data;
+
+                // Store tokens and user data
+                if (accessToken) setToken(accessToken);
+                if (refreshToken) setRefreshToken(refreshToken);
+                if (user) setUser(user);
+
+                // Update auth context
+                loginUser(user || response.data);
+
+                // Show success message
+                toast.success("Login successful!");
+
+                // Redirect based on the user's previous location or role
+                if (redirectPath) {
+                    navigate(redirectPath);
+                } else if (fromVerify || user?.isNewUser) {
+                    navigate("/profile", { state: { fromLogin: true } });
+                } else {
+                    navigate("/");
+                }
+            }
+        } catch (err) {
+            console.error('Login error:', {
+                message: err.message,
+                response: err.response,
+                stack: err.stack
+            });
+            const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+        return false;
+    };
+
+    const handleMfaVerificationComplete = (data) => {
+        // Hide MFA verification
+        setMfaVerification({
+            show: false,
+            tempToken: '',
+            user: null
+        });
+
+        // Proceed with login using the returned data
+        const { accessToken, refreshToken, user } = data;
 
         // Store tokens and user data
         if (accessToken) setToken(accessToken);
@@ -54,7 +146,7 @@ const Login = () => {
         if (user) setUser(user);
 
         // Update auth context
-        loginUser(user || userData);
+        loginUser(user || data);
 
         // Show success message
         toast.success("Login successful!");
@@ -69,64 +161,6 @@ const Login = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-
-        try {
-            const response = await authApi.login({
-                email: form.email,
-                password: form.password,
-            });
-
-            // Check if MFA verification is required
-            if (response.data.requiresMFA) {
-                setMfaVerification({
-                    show: true,
-                    tempToken: response.data.tempToken,
-                    user: response.data.user
-                });
-                return;
-            }
-
-            // If no MFA required, proceed with normal login
-            handleLoginSuccess(response.data);
-        } catch (err) {
-            console.error('Login error:', err);
-            const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
-            setError(errorMessage);
-
-            // Show toast for rate limiting errors
-            if (err.response?.status === 429) {
-                toast.error(errorMessage, {
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
-            } else {
-                toast.error(errorMessage);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleMfaVerificationComplete = (data) => {
-        // Hide MFA verification
-        setMfaVerification({
-            show: false,
-            tempToken: '',
-            user: null
-        });
-
-        // Proceed with login using the returned data
-        handleLoginSuccess(data);
-    };
-
     const handleMfaBackToLogin = () => {
         setMfaVerification({
             show: false,
@@ -137,7 +171,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             {/* MFA Verification Modal */}
             <Modal
                 title="Two-Factor Authentication"
@@ -170,13 +204,11 @@ const Login = () => {
                     <h2 className="text-2xl text-center font-bold mb-2">Welcome Back</h2>
                     <p className="mb-6 text-center text-gray-500">Please login to continue to your account.</p>
 
-                    {error && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-                            <span className="block sm:inline">{error}</span>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSubmit(e);
+                    }} className="space-y-4">
                         <div>
                             <label className="block mb-1 font-medium" htmlFor="email">Email</label>
                             <input
@@ -206,60 +238,48 @@ const Login = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center">
-                                <input
-                                    id="remember-me"
-                                    name="remember-me"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                                <label
-                                    htmlFor="remember-me"
-                                    className="ml-2 block text-sm text-gray-900"
-                                >
-                                    Remember me
-                                </label>
-                            </div>
+
+                        <div className="flex justify-end">
                             <Link
                                 to="/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                                className="text-sm text-blue-600 hover:underline"
                             >
                                 Forgot Password?
                             </Link>
                         </div>
+
                         <button
                             type="submit"
                             disabled={loading}
                             className="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-200 disabled:opacity-50"
                         >
-                            {loading ? "Signing in..." : "Sign in"}
+                            {loading ? 'Signing in...' : 'Sign in'}
                         </button>
                     </form>
-                    <p className="mt-6 text-center text-sm">
-                        Need an account?{" "}
-                        <Link to="/register" className="font-semibold underline">
-                            Create one
+
+                    <div className="text-center text-sm mt-4">
+                        Don't have an account?{' '}
+                        <Link to="/register" className="text-blue-600 hover:underline">
+                            Sign up
                         </Link>
-                    </p>
+                    </div>
                 </div>
                 {/* Right: Image */}
                 <div className="hidden md:block w-1/2 bg-gray-100">
                     <img
                         src={loginImage}
-                        alt="Graduation"
-                        className="object-cover w-full h-full rounded-r-lg"
+                        alt="Login"
+                        className="w-full h-full object-cover"
                     />
                 </div>
             </motion.div>
         </div>
     );
 };
-
 export default Login;
