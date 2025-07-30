@@ -72,7 +72,7 @@ api.interceptors.response.use(
                     // No refresh token available, redirect to login
                     clearToken();
                     localStorage.removeItem('csrfToken');
-                    window.location.href = '/login';
+                    // window.location.href = '/login';
                     return Promise.reject(error);
                 }
 

@@ -9,7 +9,7 @@ const PrivateRoute = ({ roles = [] }) => {
 
     // If not authenticated, redirect to login with return URL
     if (!isAuth) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        // return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // Check if user has required role

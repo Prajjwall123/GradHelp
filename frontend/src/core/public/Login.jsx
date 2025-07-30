@@ -49,6 +49,9 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
+        e.preventDefault(); // Prevent default form submission
+        e.stopPropagation(); // Stop event propagation
+
         // Sanitize inputs before submission
         const sanitizedForm = {
             email: sanitizeInput(form.email).trim(),
@@ -69,6 +72,7 @@ const Login = () => {
         }
 
         setLoading(true);
+        setError('');
 
         try {
             console.log('Attempting login...');
@@ -122,6 +126,7 @@ const Login = () => {
                 stack: err.stack
             });
             const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+            setError(errorMessage);
             toast.error(errorMessage);
         } finally {
             setLoading(false);
@@ -204,11 +209,7 @@ const Login = () => {
                     <h2 className="text-2xl text-center font-bold mb-2">Welcome Back</h2>
                     <p className="mb-6 text-center text-gray-500">Please login to continue to your account.</p>
 
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleSubmit(e);
-                    }} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block mb-1 font-medium" htmlFor="email">Email</label>
                             <input

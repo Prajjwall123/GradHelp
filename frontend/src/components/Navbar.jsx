@@ -48,7 +48,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     clearUserData();
-    navigate('/login');
+    // navigate('/login');
   };
 
   const navLinks = [
