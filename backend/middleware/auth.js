@@ -2,17 +2,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const TokenService = require('../services/tokenService');
 
-// Load environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
-/**
- * Middleware to authenticate requests using JWT
- */
+
 const auth = async (req, res, next) => {
     try {
         console.log('Auth middleware - Headers:', req.headers);
 
-        // Get token from Authorization header
         const authHeader = req.headers.authorization;
         console.log('Auth header:', authHeader);
 
@@ -37,7 +33,6 @@ const auth = async (req, res, next) => {
             });
         }
 
-        // Verify token
         let decoded;
         try {
             decoded = jwt.verify(token, JWT_SECRET);
@@ -61,7 +56,6 @@ const auth = async (req, res, next) => {
             });
         }
 
-        // Check if user still exists
         const user = await User.findById(decoded.sub).select('-password');
         console.log('User found:', user ? user._id : 'not found');
 
@@ -74,7 +68,6 @@ const auth = async (req, res, next) => {
             });
         }
 
-        // Check if user is active
         if (user.status && user.status !== 'active') {
             console.error('User account is not active');
             return res.status(403).json({
@@ -84,7 +77,6 @@ const auth = async (req, res, next) => {
             });
         }
 
-        // Attach user to request object
         req.user = {
             _id: user._id,
             email: user.email,
@@ -105,10 +97,7 @@ const auth = async (req, res, next) => {
     }
 };
 
-/**
- * Middleware to check if user has required role(s)
- * @param {...String} roles - Allowed roles
- */
+
 const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {

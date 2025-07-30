@@ -3,7 +3,6 @@ class ErrorResponse extends Error {
         super(message);
         this.statusCode = statusCode;
 
-        // Capture stack trace, excluding constructor call from it
         Error.captureStackTrace(this, this.constructor);
     }
 }

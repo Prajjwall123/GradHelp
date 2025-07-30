@@ -2,16 +2,13 @@ const jwt = require('jsonwebtoken');
 const RefreshToken = require('../models/refreshToken');
 const User = require('../models/user');
 
-// Load environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your-refresh-token-secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
-// Token expiration times (in seconds)
-const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
-const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
+const ACCESS_TOKEN_EXPIRY = 15 * 60; 
+const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; 
 
 class TokenService {
-    // Generate access token
     static generateAccessToken(user) {
         const payload = {
             sub: user._id,
@@ -24,13 +21,10 @@ class TokenService {
         });
     }
 
-    // Generate refresh token and save to database
     static async generateRefreshToken(user, ipAddress, userAgent) {
-        // Create a refresh token that expires in 7 days
         const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000);
         const token = RefreshToken.generateToken();
 
-        // Save the refresh token to database
         const refreshToken = new RefreshToken({
             user: user._id,
             token: token,
@@ -41,14 +35,12 @@ class TokenService {
 
         await refreshToken.save();
 
-        // Return the plaintext token (only time it's available)
         return {
             token: token,
             expiresAt: expiresAt
         };
     }
 
-    // Verify access token
     static verifyAccessToken(token) {
         try {
             return jwt.verify(token, JWT_SECRET);
@@ -57,9 +49,7 @@ class TokenService {
         }
     }
 
-    // Verify refresh token and return user if valid
     static async verifyRefreshToken(token, ipAddress) {
-        // Hash the token to compare with database
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
         const refreshToken = await RefreshToken.findOne({
@@ -72,7 +62,6 @@ class TokenService {
             return null;
         }
 
-        // Update the refresh token's last used timestamp
         refreshToken.lastUsedAt = new Date();
         refreshToken.lastUsedByIp = ipAddress;
         await refreshToken.save();
@@ -80,7 +69,6 @@ class TokenService {
         return refreshToken.user;
     }
 
-    // Revoke a refresh token
     static async revokeToken(token, ipAddress) {
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -97,7 +85,6 @@ class TokenService {
         return refreshToken;
     }
 
-    // Revoke all refresh tokens for a user
     static async revokeAllTokensForUser(userId, ipAddress) {
         await RefreshToken.updateMany(
             { user: userId, revoked: false },
@@ -110,11 +97,10 @@ class TokenService {
         );
     }
 
-    // Get all refresh tokens for a user
     static async getRefreshTokens(userId) {
         return await RefreshToken.find({ user: userId })
             .sort('-createdAt')
-            .select('-token'); // Don't return the actual tokens
+            .select('-token'); 
     }
 }
 

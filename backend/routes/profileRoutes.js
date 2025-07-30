@@ -64,12 +64,10 @@ const handleUploadErrors = (err, req, res, next) => {
     next();
 };
 
-// Apply auth middleware to all routes
 router.use(auth);
 
 router.get('/me', getProfile);
 
-// Update profile with file uploads
 router.patch('/me', 
     (req, res, next) => {
         upload(req, res, (err) => {

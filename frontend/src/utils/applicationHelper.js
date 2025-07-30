@@ -1,4 +1,5 @@
 import API from './api';
+import { fetchCSRFToken } from './authHelper';
 
 export const createApplication = async (courseId, intake) => {
     try {
@@ -36,6 +37,11 @@ export const cancelApplication = async (applicationId) => {
 
 export const updateApplicationSOP = async (applicationId, sop) => {
     try {
+        // Ensure CSRF token is present before PATCH
+        if (!sessionStorage.getItem('csrfToken')) {
+            await fetchCSRFToken();
+        }
+
         const response = await API.patch(`/applications/${applicationId}/sop`, {
             sop
         });

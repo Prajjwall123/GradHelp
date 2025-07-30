@@ -11,11 +11,9 @@ const {
 const { adminAuth } = require('../middleware/adminAuth');
 const { verifyCSRFToken } = require('../middleware/csrfProtection');
 
-// Public routes
 router.get("/", getAllCourses);
 router.get("/:id", getCourseById);
 
-// Protected admin routes with CSRF protection
 router.post(
     "/",
     verifyCSRFToken,

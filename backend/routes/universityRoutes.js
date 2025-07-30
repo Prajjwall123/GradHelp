@@ -14,7 +14,6 @@ const {
 
 const multer = require("multer");
 
-// Ensure images directory exists
 const imagesDir = path.join(__dirname, '..', 'images');
 if (!fs.existsSync(imagesDir)) {
     fs.mkdirSync(imagesDir, { recursive: true });
@@ -48,29 +47,23 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// Error handling middleware for file uploads
 const handleUploadError = (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
-        // A Multer error occurred when uploading
         if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({ error: 'File size too large. Maximum size is 5MB' });
         }
         return res.status(400).json({ error: err.message });
     } else if (err) {
-        // An unknown error occurred
         return res.status(400).json({ error: err.message });
     }
     next();
 };
 
-// Public routes
 router.get("/", getAllUniversities);
 router.get("/:id", getUniversityById);
 
-// Protected routes (require authentication)
 router.use((req, res, next) => auth(req, res, next));
 
-// Admin-only routes
 router.post("/", 
     (req, res, next) => adminAuth(req, res, next),
     upload.single('university_photo'), 

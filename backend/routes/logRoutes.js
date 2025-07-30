@@ -8,7 +8,6 @@ const {
     deleteLogs
 } = require('../controllers/logController');
 
-// All routes are protected and admin-only
 router.use(auth);
 router.use((req, res, next) => authorize('admin')(req, res, next));
 

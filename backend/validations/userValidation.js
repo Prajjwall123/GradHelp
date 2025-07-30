@@ -76,14 +76,13 @@ exports.resetPasswordSchema = Joi.object({
             'alternatives.match': 'Invalid request format',
             'any.required': 'Request body is required'
         }),
-    
-    // These fields are kept for backward compatibility
+
     newPassword: Joi.when('email', {
         is: Joi.object(),
         then: Joi.forbidden(),
         otherwise: passwordSchema.required()
     }),
-    
+
     otp: Joi.when('email', {
         is: Joi.object(),
         then: Joi.forbidden(),

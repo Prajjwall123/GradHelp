@@ -8,10 +8,8 @@ const {
     updateApplicationStatus
 } = require('../controllers/scholarshipApplicationController');
 
-// Apply auth middleware to all routes
 router.use(auth);
 
-// Scholarship application routes
 router.post('/', createScholarshipApplication);
 router.get('/me', getMyScholarshipApplications);
 router.put('/:id/status', updateApplicationStatus);

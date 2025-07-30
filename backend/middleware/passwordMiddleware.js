@@ -41,13 +41,11 @@ const checkPasswordExpiration = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Password expiration check error:', error);
-        next(); // Continue to next middleware even if there's an error
+        next(); 
     }
 };
 
-/**
- * Sends an email with a temporary password
- */
+
 const sendTemporaryPasswordEmail = async (email, tempPassword) => {
     try {
         const subject = 'Your Temporary Password';
@@ -68,21 +66,17 @@ const sendTemporaryPasswordEmail = async (email, tempPassword) => {
     }
 };
 
-/**
- * Middleware to check if new password is in password history
- */
+
 const checkPasswordHistory = async (req, res, next) => {
     try {
         const { email, newPassword } = req.body;
         
-        // Skip if this is not a password change request
         if (!newPassword) return next();
         
         const user = await User.findOne({ email }).select('+passwordHistory');
         
         if (!user) return next();
         
-        // Check if new password matches any of the last 5 passwords
         for (const entry of user.passwordHistory) {
             const isMatch = await bcrypt.compare(newPassword, entry.hashedPassword);
             if (isMatch) {

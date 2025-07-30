@@ -12,15 +12,12 @@ const {
     getScholarshipsByUniversity
 } = require("../controllers/scholarshipController");
 
-// Public routes
 router.get("/", getAllScholarships);
 router.get("/university/:universityId", getScholarshipsByUniversity);
 router.get("/:id", getScholarshipById);
 
-// Protected routes (require authentication)
 router.use((req, res, next) => auth(req, res, next));
 
-// Admin-only routes
 router.post("/", 
     (req, res, next) => adminAuth(req, res, next),
     createScholarship

@@ -16,28 +16,22 @@ const {
 
 const { validateSOPUpdate } = require("../validations/applicationValidation");
 
-// Apply auth middleware to all routes
 router.use(auth);
 
-// User routes
 router.get("/me", getApplicationsByUser);
 
-// Application routes
 router.post("/", createApplication);
 router.get("/:id", getApplicationById);
 router.get("/user/:userId", getApplicationsByUser);
 
-// SOP update route
 router.patch(
     "/:applicationId/sop",
     validateSOPUpdate,
     updateApplicationSOP
 );
 
-// Delete application
 router.delete("/:id", deleteApplication);
 
-// Admin-only routes
 router.get("/admin/all", adminAuth, getAllApplications);
 
 router.patch(
