@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Loader2, CheckCircle, XCircle, CreditCard } from 'lucide-react';
-import API from '../../utils/api';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { initiatePayment, verifyPayment, getPremiumStatus } from '../../utils/paymentHelper';
 
 const MyPlan = () => {
     const { currentUser, isAuthenticated, loading: authLoading } = useAuth();
@@ -15,42 +15,37 @@ const MyPlan = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    // Check authentication status
+    // Fetch user's premium status
+    const fetchPremiumStatus = useCallback(async () => {
+        if (!isAuthenticated || authLoading) return;
+
+        setLoading(true);
+        const { success, isPremium: premiumStatus, error } = await getPremiumStatus();
+
+        if (success) {
+            setIsPremium(premiumStatus);
+        } else if (error) {
+            console.error('Error fetching premium status:', error);
+            toast.error('Failed to load your premium status');
+        }
+
+        setLoading(false);
+        setIsCheckingStatus(false);
+    }, [isAuthenticated, authLoading]);
+
+    // Check authentication status and fetch premium status
     useEffect(() => {
         if (!authLoading) {
             if (!isAuthenticated) {
                 toast.error('Please log in to view this page');
                 navigate('/login', { state: { from: '/my-plan' } });
             } else {
-                setIsCheckingStatus(false);
-                if (currentUser?.premium) {
-                    setIsPremium(true);
-                }
+                fetchPremiumStatus();
             }
         }
-    }, [isAuthenticated, authLoading, navigate, currentUser]);
+    }, [isAuthenticated, authLoading, navigate, fetchPremiumStatus]);
 
-    // Fetch user's premium status when component mounts
-    useEffect(() => {
-        if (!isAuthenticated || authLoading) return;
-
-        const fetchPremiumStatus = async () => {
-            try {
-                const response = await API.get('/users/premium-status');
-                if (response.data?.success) {
-                    setIsPremium(response.data.isPremium);
-                }
-            } catch (error) {
-                console.error('Error fetching premium status:', error);
-                toast.error('Failed to load your premium status');
-            } finally {
-                setIsCheckingStatus(false);
-            }
-        };
-
-        fetchPremiumStatus();
-    }, [isAuthenticated, authLoading]);
-
+    // Handle payment initiation
     const handleUpgrade = async () => {
         if (!isAuthenticated) {
             toast.error('Please log in to upgrade your plan');
@@ -59,31 +54,23 @@ const MyPlan = () => {
         }
 
         setLoading(true);
-        try {
-            const response = await API.post('/payments/initiate', {
-                amount: 500, // 500 NPR
-            });
+        const { success, data, error } = await initiatePayment(500); // 500 NPR
 
-            if (response.data.success && response.data.data?.payment_url) {
-                // Store the current URL to return to after payment
-                sessionStorage.setItem('prePaymentUrl', window.location.pathname);
-                // Redirect to Khalti payment page
-                window.location.href = response.data.data.payment_url;
-            } else {
-                throw new Error('Invalid response from server');
-            }
-        } catch (error) {
-            console.error('Error initiating payment:', error);
-            const errorMessage = error.response?.data?.message || 'Failed to initiate payment';
-            toast.error(errorMessage);
+        if (success && data?.data?.payment_url) {
+            // Store the current URL to return to after payment
+            sessionStorage.setItem('prePaymentUrl', window.location.pathname);
+            // Redirect to Khalti payment page
+            window.location.href = data.data.payment_url;
+        } else {
+            toast.error(error || 'Failed to initiate payment');
 
             // If the error is due to being already premium, update the UI
-            if (error.response?.data?.error?.detail?.includes('already premium')) {
+            if (error?.includes('already premium')) {
                 setIsPremium(true);
             }
-        } finally {
-            setLoading(false);
         }
+
+        setLoading(false);
     };
 
     // Check if we're returning from Khalti payment
@@ -91,31 +78,26 @@ const MyPlan = () => {
         const pidx = searchParams.get('pidx');
         const transactionId = searchParams.get('transaction_id');
 
-        const verifyPayment = async () => {
-            if (pidx && transactionId) {
-                try {
-                    setLoading(true);
-                    const response = await API.post('/payments/verify', { pidx });
+        const processPaymentVerification = async () => {
+            if (!pidx || !transactionId) return;
 
-                    if (response.data.success) {
-                        // Update premium status
-                        setIsPremium(true);
-                        toast.success('Payment successful! You are now a premium member.');
-                        // Clean up URL
-                        navigate('/my-plan', { replace: true });
-                    } else {
-                        throw new Error(response.data.message || 'Payment verification failed');
-                    }
-                } catch (error) {
-                    console.error('Error verifying payment:', error);
-                    toast.error(error.response?.data?.message || 'Failed to verify payment');
-                } finally {
-                    setLoading(false);
-                }
+            setLoading(true);
+            const { success, error } = await verifyPayment(pidx);
+
+            if (success) {
+                // Update premium status
+                setIsPremium(true);
+                toast.success('Payment successful! You are now a premium member.');
+                // Clean up URL
+                navigate('/my-plan', { replace: true });
+            } else {
+                toast.error(error || 'Payment verification failed');
             }
+
+            setLoading(false);
         };
 
-        verifyPayment();
+        processPaymentVerification();
     }, [searchParams, navigate]);
 
     if (authLoading || isCheckingStatus) {
