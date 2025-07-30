@@ -3,36 +3,36 @@ const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_INFO_KEY = 'user_info';
 
-// Save tokens to localStorage
+// Save tokens to sessionStorage
 export const setTokens = (accessToken, refreshToken) => {
     if (accessToken) {
-        localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     }
     if (refreshToken) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+        sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }
 };
 
 // Get access token
 export const getToken = () => {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    return sessionStorage.getItem(ACCESS_TOKEN_KEY);
 };
 
 // Get refresh token
 export const getRefreshToken = () => {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+    return sessionStorage.getItem(REFRESH_TOKEN_KEY);
 };
 
 // Save user info
 export const setUser = (user) => {
     if (user) {
-        localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+        sessionStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
     }
 };
 
 // Get user info
 export const getUser = () => {
-    const user = localStorage.getItem(USER_INFO_KEY);
+    const user = sessionStorage.getItem(USER_INFO_KEY);
     return user ? JSON.parse(user) : null;
 };
 
@@ -49,29 +49,29 @@ export const isAdmin = () => {
 
 // Clear all auth data
 export const clearAuth = () => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_INFO_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(USER_INFO_KEY);
 };
 
 // Set access token
 export const setToken = (token) => {
     if (token) {
-        localStorage.setItem(ACCESS_TOKEN_KEY, token);
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
     }
 };
 
 // Set refresh token
 export const setRefreshToken = (token) => {
     if (token) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, token);
+        sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
     }
 };
 
 // Clear tokens
 export const clearToken = () => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 // Get auth header for API requests

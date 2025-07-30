@@ -31,7 +31,7 @@ const deleteCookie = (name) => {
 // Store access token
 const storeAccessToken = (token) => {
     try {
-        localStorage.setItem(ACCESS_TOKEN_KEY, token);
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
         return true;
     } catch (error) {
         console.error('Error storing access token:', error);
@@ -41,7 +41,7 @@ const storeAccessToken = (token) => {
 
 // Get access token
 const getToken = () => {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    return sessionStorage.getItem(ACCESS_TOKEN_KEY);
 };
 
 // Set access token (alias for storeAccessToken for backward compatibility)
@@ -71,8 +71,8 @@ const isAuthenticated = () => {
 
 const clearUserData = () => {
     try {
-        // Clear access token from localStorage
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        // Clear access token from sessionStorage
+        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
 
         // Clear refresh token from cookies
         deleteCookie(REFRESH_TOKEN_KEY);
@@ -90,14 +90,14 @@ const loginUser = async (credentials) => {
         const response = await API.post("/auth/login", credentials);
 
         if (response.data && response.data.access_token && response.data.refresh_token) {
-            // Store access token in localStorage
+            // Store access token in sessionStorage
             setToken(response.data.access_token);
 
             // Store refresh token in HTTP-only cookie
             setRefreshToken(response.data.refresh_token);
 
-            const isNewUser = localStorage.getItem('isNewUser') === 'true';
-            localStorage.removeItem('isNewUser');
+            const isNewUser = sessionStorage.getItem('isNewUser') === 'true';
+            sessionStorage.removeItem('isNewUser');
 
             // Get user data from the token, not from response
             const userData = getUser();
@@ -125,7 +125,7 @@ const registerUser = async (userData) => {
         console.log("registering:", userData);
         const response = await API.post("/users/register", userData);
 
-        localStorage.setItem('isNewUser', 'true');
+        sessionStorage.setItem('isNewUser', 'true');
         return response.data;
     } catch (error) {
         console.error("Registration failed:", error);
@@ -149,7 +149,7 @@ const verifyOTP = async (payload) => {
 
             // For other OTP verifications (like password reset)
             if (response.data.access_token && response.data.refresh_token) {
-                // Store access token in localStorage
+                // Store access token in sessionStorage
                 setToken(response.data.access_token);
                 // Store refresh token in HTTP-only cookie
                 setRefreshToken(response.data.refresh_token);
@@ -195,7 +195,7 @@ const getUser = () => {
     }
 };
 
-// This is a no-op function since we don't want to store user data in localStorage
+// This is a no-op function since we don't want to store user data in sessionStorage
 // Keeping it for backward compatibility
 const setUser = () => {
     console.warn('setUser is deprecated. User data is now only stored in the token.');

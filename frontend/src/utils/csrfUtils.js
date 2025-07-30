@@ -1,28 +1,28 @@
 /**
- * Get the current CSRF token from localStorage
+ * Get the current CSRF token from sessionStorage
  * @returns {string|null} The CSRF token or null if not found
  */
 export const getCSRFToken = () => {
-    return localStorage.getItem('csrfToken');
+    return sessionStorage.getItem('csrfToken');
 };
 
 /**
- * Set the CSRF token in localStorage and return it
+ * Set the CSRF token in sessionStorage and return it
  * @param {string} token - The CSRF token to store
  * @returns {string} The stored CSRF token
  */
 export const setCSRFToken = (token) => {
     if (token) {
-        localStorage.setItem('csrfToken', token);
+        sessionStorage.setItem('csrfToken', token);
     }
     return token;
 };
 
 /**
- * Remove the CSRF token from localStorage
+ * Remove the CSRF token from sessionStorage
  */
 export const removeCSRFToken = () => {
-    localStorage.removeItem('csrfToken');
+    sessionStorage.removeItem('csrfToken');
 };
 
 /**

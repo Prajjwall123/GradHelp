@@ -1,14 +1,16 @@
-// This script will clean up user data from localStorage
-console.log('Cleaning up localStorage...');
+// This script will clean up user data from sessionStorage
 
-// Remove user data from localStorage
-localStorage.removeItem('user');
+// Remove specific items from sessionStorage
+sessionStorage.removeItem('access_token');
+sessionStorage.removeItem('refresh_token');
+sessionStorage.removeItem('user_info');
+sessionStorage.removeItem('csrfToken');
 
-// List all items in localStorage for debugging
-console.log('Current localStorage items:');
-for (let i = 0; i < localStorage.length; i++) {
-  const key = localStorage.key(i);
-  console.log(`- ${key}: ${localStorage.getItem(key).substring(0, 50)}${localStorage.getItem(key).length > 50 ? '...' : ''}`);
+// List all items in sessionStorage for debugging
+console.log('Current sessionStorage items:');
+for (let i = 0; i < sessionStorage.length; i++) {
+  const key = sessionStorage.key(i);
+  console.log(`- ${key}: ${sessionStorage.getItem(key).substring(0, 50)}${sessionStorage.getItem(key).length > 50 ? '...' : ''}`);
 }
 
-console.log('Cleanup complete. Please refresh your application.');
+console.log('Cleanup completed.');

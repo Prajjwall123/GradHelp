@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = getToken();
-        const csrfToken = localStorage.getItem('csrfToken');
+        const csrfToken = sessionStorage.getItem('csrfToken');
 
         console.log('API Request - Token exists:', !!token);
         console.log('API Request - URL:', config.url);
@@ -51,7 +51,7 @@ api.interceptors.response.use(
         // Check for new CSRF token in response headers
         const csrfToken = response.headers['x-csrf-token'];
         if (csrfToken) {
-            localStorage.setItem('csrfToken', csrfToken);
+            sessionStorage.setItem('csrfToken', csrfToken);
             console.log('Updated CSRF token from response');
         }
         return response;
@@ -71,7 +71,7 @@ api.interceptors.response.use(
                 if (!refreshToken) {
                     // No refresh token available, redirect to login
                     clearToken();
-                    localStorage.removeItem('csrfToken');
+                    sessionStorage.removeItem('csrfToken');
                     // window.location.href = '/login';
                     return Promise.reject(error);
                 }
@@ -95,7 +95,7 @@ api.interceptors.response.use(
                 // Check for new CSRF token in response
                 const csrfToken = response.headers['x-csrf-token'];
                 if (csrfToken) {
-                    localStorage.setItem('csrfToken', csrfToken);
+                    sessionStorage.setItem('csrfToken', csrfToken);
                     originalRequest.headers['X-CSRF-Token'] = csrfToken;
                 }
 
@@ -104,7 +104,7 @@ api.interceptors.response.use(
             } catch (error) {
                 // Refresh token failed, clear everything and redirect to login
                 clearToken();
-                localStorage.removeItem('csrfToken');
+                sessionStorage.removeItem('csrfToken');
                 // window.location.href = '/login';
                 return Promise.reject(error);
             }
