@@ -10,7 +10,7 @@ const AdminUsers = () => {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  // Load users
+  
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -23,7 +23,7 @@ const AdminUsers = () => {
     }
   };
 
-  // Handle form submit
+  
   const handleSubmit = async (values) => {
     try {
       if (editingId) {
@@ -41,7 +41,7 @@ const AdminUsers = () => {
     }
   };
 
-  // Handle delete
+  
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this user?')) return;
     try {
@@ -53,7 +53,7 @@ const AdminUsers = () => {
     }
   };
 
-  // Set up edit form
+  
   const handleEdit = (user) => {
     setEditingId(user._id);
     form.setFieldsValue({
@@ -65,19 +65,19 @@ const AdminUsers = () => {
     setModalVisible(true);
   };
 
-  // Load data on mount
+  
   useEffect(() => {
     loadUsers();
   }, []);
 
-  // Role tag colors
+  
   const roleColors = {
     admin: 'red',
     user: 'blue',
     student: 'green',
   };
 
-  // Table columns
+  
   const columns = [
     { title: 'Name', dataIndex: 'fullName', key: 'name' },
     { title: 'Email', dataIndex: 'email', key: 'email' },

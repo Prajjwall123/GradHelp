@@ -41,7 +41,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
             stripHtml: true
         });
 
-        // Create a new event with the sanitized value
+        
         const sanitizedEvent = {
             ...e,
             target: {
@@ -56,7 +56,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
     const handleTextInputChange = (e) => {
         const sanitizedEvent = sanitizeAndSetValue(e);
 
-        // If this is a test type change, handle it specially
+        
         if (e.target.name === 'test_type') {
             handleTestTypeChange(sanitizedEvent);
         } else {
@@ -68,7 +68,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file type
+        
         const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         const fileType = file.type;
 
@@ -77,7 +77,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
             return;
         }
 
-        // Validate file size (10MB max)
+        
         if (file.size > 10 * 1024 * 1024) {
             setFileError('File size should not exceed 10MB');
             return;
@@ -104,7 +104,7 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
         };
         setScores(newScores);
 
-        // Update the form data with the sanitized score
+        
         const sanitizedValue = value === '' ? null : parseFloat(value);
         handleChange({
             target: {
@@ -136,8 +136,8 @@ const EnglishTestStep = ({ formData, handleChange, setFormData }) => {
 
         setDateError('');
 
-        // Create a sanitized event with the date in the correct format
-        const formattedDate = e.target.value; // YYYY-MM-DD format from date input
+        
+        const formattedDate = e.target.value; 
 
         handleChange({
             target: {

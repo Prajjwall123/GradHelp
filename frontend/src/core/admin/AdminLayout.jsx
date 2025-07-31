@@ -30,7 +30,7 @@ const AdminLayout = () => {
         token: { colorBgContainer, colorPrimary },
     } = theme.useToken();
 
-    // Menu items configuration
+    
     const menuItems = [
         {
             key: 'dashboard',
@@ -76,7 +76,7 @@ const AdminLayout = () => {
         }
     ];
 
-    // Update selected key when location changes
+    
     useEffect(() => {
         const currentItem = menuItems.find(item => location.pathname.startsWith(item.path));
         if (currentItem) {

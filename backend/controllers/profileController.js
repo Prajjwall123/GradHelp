@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { Types } = require('mongoose');
 
-// Helper function to clean up old files
+
 const cleanupOldFile = async (userId, fieldName) => {
     try {
         const profile = await Profile.findOne({ user: userId });
@@ -37,7 +37,7 @@ const createProfile = async (userId, profileData = {}) => {
 
 const getProfile = async (req, res) => {
     try {
-        console.log('getProfile - req.user:', req.user); // Log the user object
+        console.log('getProfile - req.user:', req.user); 
         
         if (!req.user || !req.user._id) {
             console.error('No user ID found in request');
@@ -115,7 +115,7 @@ const updateProfile = async (req, res) => {
         const userId = req.user._id;
         const updateData = { ...req.body };
 
-        // Handle file uploads
+        
         if (req.files) {
             if (req.files['education_transcript']) {
                 await cleanupOldFile(userId, 'education_transcript');
@@ -128,7 +128,7 @@ const updateProfile = async (req, res) => {
             }
         }
 
-        // Update profile
+        
         const profile = await Profile.findOneAndUpdate(
             { user: userId },
             { $set: updateData },
@@ -136,7 +136,7 @@ const updateProfile = async (req, res) => {
         ).populate('user', 'full_name email');
 
         if (!profile) {
-            // Create profile if it doesn't exist
+            
             const newProfile = await createProfile(userId, updateData);
             return res.status(201).json({
                 success: true,
@@ -153,7 +153,7 @@ const updateProfile = async (req, res) => {
     } catch (error) {
         console.error('Error updating profile:', error);
 
-        // Handle validation errors
+        
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(val => val.message);
             return res.status(400).json({

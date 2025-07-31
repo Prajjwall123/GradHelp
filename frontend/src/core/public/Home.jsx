@@ -1,4 +1,3 @@
-import React from "react";
 import Navbar from "../../components/Navbar";
 import SearchBar from "../../components/SearchBar";
 import heroImg from "../../assets/graduation-hero.png";
@@ -50,7 +49,7 @@ const Home = () => (
                     <img src={heroImg} alt="Graduation" className="w-full max-w-lg rounded-2xl shadow-xl" />
                 </div>
             </section>
-            
+
             {/* Search Bar Section */}
             <div className="relative z-10 -mt-16 mb-20">
                 <div className="max-w-6xl mx-auto px-4">

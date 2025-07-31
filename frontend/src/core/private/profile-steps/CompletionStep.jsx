@@ -5,32 +5,32 @@ import { useNavigate } from 'react-router-dom';
 const CompletionStep = ({ formData }) => {
     const navigate = useNavigate();
 
-    // Calculate completion percentage
+
     const calculateCompletion = () => {
         let completedFields = 0;
         const totalFields = 20;
 
-        // Personal Info
+
         if (formData.full_name) completedFields += 1;
         if (formData.email) completedFields += 1;
         if (formData.phone) completedFields += 1;
         if (formData.address) completedFields += 1;
 
-        // Education
+
         if (formData.education_level) completedFields += 1;
         if (formData.institution) completedFields += 1;
 
-        // Visa
+
         if (formData.visa_status) completedFields += 1;
 
-        // English Test
+
         if (formData.english_test?.test_type) completedFields += 1;
 
-        // Documents
+
         if (formData.documents?.passport) completedFields += 1;
         if (formData.documents?.academic_transcripts) completedFields += 1;
 
-        // Recommendation Letters
+
 
         return Math.round((completedFields / totalFields) * 100);
     };

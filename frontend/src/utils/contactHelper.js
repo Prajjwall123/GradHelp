@@ -7,7 +7,7 @@ const sanitizeInput = (input) => {
 
     str = str.replace(/<[^>]*>?/gm, '');
 
-    // Escape special characters that could lead to NoSQL injection
+
     const specialChars = {
         '\\': '\\\\',
         '"': '\\"',
@@ -22,7 +22,7 @@ const sanitizeInput = (input) => {
 
 export const submitContactForm = async (formData) => {
     try {
-        // Sanitize all input data
+
         const sanitizedData = {
             name: sanitizeInput(formData.name).substring(0, 100),
             email: sanitizeInput(formData.email).toLowerCase().substring(0, 100),
@@ -30,7 +30,7 @@ export const submitContactForm = async (formData) => {
             message: sanitizeInput(formData.message).substring(0, 2000)
         };
 
-        // Basic email validation
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(sanitizedData.email)) {
             throw new Error('Please enter a valid email address');
@@ -51,7 +51,7 @@ export const submitContactForm = async (formData) => {
             responseData = await (contentType?.includes('application/json')
                 ? response.json()
                 : response.text().then(text => {
-                    // Sanitize any text response
+
                     const safeText = sanitizeInput(text);
                     return {
                         message: safeText.includes('Too many')
@@ -74,7 +74,7 @@ export const submitContactForm = async (formData) => {
         return responseData;
     } catch (error) {
         console.error('Error in submitContactForm:', error);
-        // Don't expose internal error details to the client
+
         const safeError = new Error(error.message || 'Failed to submit form. Please try again.');
         safeError.status = error.status || 500;
         throw safeError;

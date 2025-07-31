@@ -20,7 +20,7 @@ const AdminLogs = () => {
     dateRange: [],
   });
 
-  // Load logs
+  
   const loadLogs = async (page = 1, pageSize = 10) => {
     try {
       setLoading(true);
@@ -35,7 +35,7 @@ const AdminLogs = () => {
 
       const res = await api.get('/logs', { params });
       
-      // Map the API response to match our table structure
+      
       const formattedLogs = res.data.data.map(log => ({
         ...log,
         key: log._id,
@@ -56,25 +56,25 @@ const AdminLogs = () => {
     }
   };
 
-  // Handle table change (pagination, filters, sorter)
+  
   const handleTableChange = (pagination, filters, sorter) => {
     loadLogs(pagination.current, pagination.pageSize);
   };
 
-  // Handle filter change
+  
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    // Reset to first page when filters change
+    
     loadLogs(1, pagination.pageSize);
   };
 
-  // Load data on mount
+  
   useEffect(() => {
     loadLogs();
   }, []);
 
-  // Log level tag colors
+  
   const levelColors = {
     error: 'red',
     warn: 'orange',
@@ -82,7 +82,7 @@ const AdminLogs = () => {
     debug: 'green',
   };
 
-  // Table columns
+  
   const columns = [
     {
       title: 'Timestamp',

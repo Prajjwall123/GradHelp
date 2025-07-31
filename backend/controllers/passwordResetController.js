@@ -4,19 +4,14 @@ const bcrypt = require('bcryptjs');
 const { sendOTPEmail } = require('../utils/email');
 const { checkPasswordExpiration, checkPasswordHistory } = require('../middleware/passwordMiddleware');
 
-/**
- * Handles forgot password request
- * 1. Validates email
- * 2. Generates and saves OTP
- * 3. Sends OTP to user's email
- */
+
 const forgotPassword = [
     checkPasswordExpiration,
     async (req, res) => {
     try {
         const { email } = req.body;
 
-        // Find user by email
+        
         const user = await User.findOne({ email: email.toLowerCase().trim() });
         if (!user) {
             return res.status(404).json({ 
@@ -25,10 +20,10 @@ const forgotPassword = [
             });
         }
 
-        // Generate and save OTP
+        
         const otpRecord = await OTP.generatePasswordResetOTP(email);
 
-        // Send OTP via email
+        
         const emailSent = await sendOTPEmail(email, otpRecord.otp, 'password_reset');
         if (!emailSent) {
             await OTP.deleteOne({ _id: otpRecord._id });
@@ -54,28 +49,23 @@ const forgotPassword = [
     }
 }];
 
-/**
- * Handles password reset with OTP verification
- * 1. Validates OTP
- * 2. Updates user's password
- * 3. Updates password history
- */
+
 const resetPassword = [
     checkPasswordHistory,
     async (req, res) => {
     try {
         let { email, newPassword, otp } = req.body;
 
-        // Handle nested email object if present (from frontend)
+        
         if (email && typeof email === 'object') {
-            // Extract fields from the nested email object
+            
             const { email: userEmail, newPassword: password, otp: userOtp } = email;
             email = userEmail;
             newPassword = newPassword || password;
             otp = otp || userOtp;
         }
 
-        // Input validation (should be handled by Joi, but keeping as a safety check)
+        
         if (!email || !newPassword || !otp) {
             return res.status(400).json({
                 success: false,
@@ -84,7 +74,7 @@ const resetPassword = [
             });
         }
 
-        // Verify OTP
+        
         const isOtpValid = await OTP.verifyPasswordResetOTP(email, otp);
         if (!isOtpValid) {
             return res.status(400).json({
@@ -93,10 +83,10 @@ const resetPassword = [
             });
         }
 
-        // Hash new password
+        
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Find user and update password with history
+        
         const user = await User.findOne({ email: email.toLowerCase().trim() });
         
         if (!user) {
@@ -106,25 +96,25 @@ const resetPassword = [
             });
         }
 
-        // Add current password to history before updating
+        
         user.passwordHistory.unshift({
             hashedPassword: user.password,
             changedAt: user.passwordChangedAt || new Date()
         });
 
-        // Keep only last 5 passwords
+        
         if (user.passwordHistory.length > 5) {
             user.passwordHistory = user.passwordHistory.slice(0, 5);
         }
 
-        // Update user's password and timestamps
+        
         user.password = hashedPassword;
         user.passwordChangedAt = Date.now();
-        user.passwordExpiresAt = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000); // 45 days from now
+        user.passwordExpiresAt = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000); 
         
         await user.save();
         
-        // Get updated user without sensitive data
+        
         const updatedUser = await User.findById(user._id).select('-password -passwordHistory -__v');
 
         res.status(200).json({

@@ -100,24 +100,14 @@ function App() {
   ];
 
 
-  // Create the router configuration
   const router = createBrowserRouter([
-    // Public routes
     ...publicRoutes,
-
-    // Public university/course routes
     ...universityRoutes,
-
-    // Protected routes
     {
       element: <PrivateRoute />,
       children: protectedRoutes,
     },
-
-    // Admin routes
     ...adminRoutes,
-
-    // 404 - Keep this last
     { path: "*", element: <Suspense fallback={<div>Loading...</div>}><PageNotFound /></Suspense> },
   ]);
 

@@ -7,12 +7,12 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
     const [showEmailError, setShowEmailError] = React.useState(false);
     const [dateError, setDateError] = React.useState('');
 
-    // Format date for input field (YYYY-MM-DD)
+    
     const formatDateForInput = (dateString) => {
         if (!dateString) return '';
         try {
             const date = new Date(dateString);
-            // Check if date is valid
+            
             if (isNaN(date.getTime())) return '';
             return date.toISOString().split('T')[0];
         } catch (error) {
@@ -24,7 +24,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
     const handleTextInputChange = (e) => {
         const { name, value } = e.target;
 
-        // Only proceed if name exists
+        
         if (!name) {
             console.error('Input element is missing name attribute');
             return;
@@ -35,7 +35,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
             stripHtml: true
         });
 
-        // Create a new synthetic event with all original properties
+        
         const syntheticEvent = {
             ...e,
             target: {
@@ -80,7 +80,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
             setDateError('You must be at least 18 years old');
         } else {
             setDateError('');
-            // Format the date properly before updating the form data
+            
             const formattedDate = selectedDate.toISOString();
             const syntheticEvent = {
                 ...e,

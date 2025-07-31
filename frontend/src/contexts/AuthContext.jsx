@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../utils/api'; // Use the consolidated API client
-import { 
-    getToken, 
+import api from '../utils/api';
+import {
+    getToken,
     getUser,
-    clearUserData, 
-    isAuthenticated 
+    clearUserData,
+    isAuthenticated
 } from '../utils/authHelper';
 
 const AuthContext = createContext(null);
@@ -13,25 +13,18 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Initialize auth state on mount
     useEffect(() => {
         const initializeAuth = async () => {
             try {
                 if (isAuthenticated()) {
-                    // Get user data from storage
                     const userData = getUser();
                     if (userData) {
                         setCurrentUser(userData);
                     }
-                    
-                    // Optionally validate token with backend
-                    // const { data } = await api.get('/auth/me');
-                    // setCurrentUser(data.user);
                 }
             } catch (error) {
                 console.error('Error initializing auth:', error);
                 if (error.response?.status === 401) {
-                    // Token is invalid, clear auth data
                     clearUserData();
                     setCurrentUser(null);
                 }
@@ -43,38 +36,27 @@ export const AuthProvider = ({ children }) => {
         initializeAuth();
     }, []);
 
-    // Login function
     const login = (userData) => {
         setCurrentUser(userData);
-        // User data is already stored in authHelper's storeUserData
     };
 
-    // Logout function
     const logout = async () => {
         try {
             await api.post('/auth/logout');
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Clear auth state regardless of API call result
             clearUserData();
             setCurrentUser(null);
         }
-        // Note: Navigation is now handled in the component
     };
 
-    // Update user data
     const updateUser = (userData) => {
         const updatedUser = {
             ...currentUser,
             ...userData
         };
         setCurrentUser(updatedUser);
-        
-        // Update user data in storage
-        // Note: The authHelper doesn't have a storeUserData function
-        // You might want to implement this if needed
-        console.log('User data updated:', updatedUser);
     };
 
     const value = {
@@ -94,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {

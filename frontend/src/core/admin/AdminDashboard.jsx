@@ -1,4 +1,4 @@
-// frontend/src/core/admin/AdminDashboard.jsx
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Statistic, Table, Tag, Space, Button } from 'antd';

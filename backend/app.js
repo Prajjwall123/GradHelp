@@ -31,7 +31,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 connectDB();
 
 const corsOptions = {
-    origin: ["https://localhost:5173"],
+    origin: ["https://localhost:5173", "https://192.168.58.1:5173"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
@@ -93,14 +93,16 @@ const sslOptions = {
     rejectUnauthorized: false
 };
 
-// Create HTTPS server
+// Creating HTTPS server
 const PORT = process.env.PORT;
 const httpsServer = https.createServer(sslOptions, app);
 
-// Start the server
+// Starting the server
 httpsServer.listen(PORT, '0.0.0.0', () => {
     console.log(`HTTPS Server running on port ${PORT}`);
     console.log(`API available at https://localhost:${PORT}/api`);
 });
 
 module.exports = { app, httpsServer };
+
+

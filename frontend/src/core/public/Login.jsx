@@ -11,7 +11,6 @@ import { setToken, setRefreshToken, setUser, fetchCSRFToken } from "../../utils/
 import MfaVerification from "../../components/auth/MfaVerification";
 import { sanitizeInput } from "../../utils/sanitize";
 
-// Import images using Vite's import.meta.glob
 const logo = new URL('../../assets/logo.png', import.meta.url).href;
 const loginImage = new URL('../../assets/login.jpg', import.meta.url).href;
 
@@ -43,28 +42,28 @@ const Login = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        // Sanitize input before updating state
+        
         const sanitizedValue = sanitizeInput(value);
         setForm(prev => ({ ...prev, [name]: sanitizedValue }));
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent default form submission
-        e.stopPropagation(); // Stop event propagation
+        e.preventDefault(); 
+        e.stopPropagation(); 
 
-        // Sanitize inputs before submission
+        
         const sanitizedForm = {
             email: sanitizeInput(form.email).trim(),
             password: sanitizeInput(form.password)
         };
 
-        // Basic validation
+        
         if (!sanitizedForm.email || !sanitizedForm.password) {
             toast.error('Please enter both email and password');
             return false;
         }
 
-        // Email format validation
+        
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(sanitizedForm.email)) {
             toast.error('Please enter a valid email address');
@@ -75,9 +74,9 @@ const Login = () => {
         setError('');
 
         try {
-            // Fetch CSRF token before login
+            
             await fetchCSRFToken();
-            console.log('Attempting login...');
+            
             const response = await authApi.login({
                 email: sanitizedForm.email,
                 password: sanitizedForm.password,
@@ -88,7 +87,7 @@ const Login = () => {
             }
 
             if (response.data.requiresMFA) {
-                console.log('MFA required');
+                
                 setMfaVerification({
                     show: true,
                     tempToken: response.data.tempToken,
@@ -98,21 +97,21 @@ const Login = () => {
             }
 
             if (response.data) {
-                console.log('Login successful, handling success...');
+                
                 const { accessToken, refreshToken, user } = response.data;
 
-                // Store tokens and user data
+                
                 if (accessToken) setToken(accessToken);
                 if (refreshToken) setRefreshToken(refreshToken);
                 if (user) setUser(user);
 
-                // Update auth context
+                
                 loginUser(user || response.data);
 
-                // Show success message
+                
                 toast.success("Login successful!");
 
-                // Redirect based on the user's previous location or role
+                
                 if (redirectPath) {
                     navigate(redirectPath);
                 } else if (fromVerify || user?.isNewUser) {
@@ -137,28 +136,28 @@ const Login = () => {
     };
 
     const handleMfaVerificationComplete = (data) => {
-        // Hide MFA verification
+        
         setMfaVerification({
             show: false,
             tempToken: '',
             user: null
         });
 
-        // Proceed with login using the returned data
+        
         const { accessToken, refreshToken, user } = data;
 
-        // Store tokens and user data
+        
         if (accessToken) setToken(accessToken);
         if (refreshToken) setRefreshToken(refreshToken);
         if (user) setUser(user);
 
-        // Update auth context
+        
         loginUser(user || data);
 
-        // Show success message
+        
         toast.success("Login successful!");
 
-        // Redirect based on the user's previous location or role
+        
         if (redirectPath) {
             navigate(redirectPath);
         } else if (fromVerify || user?.isNewUser) {

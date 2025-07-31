@@ -1,8 +1,7 @@
 const axios = require('axios');
 const User = require('../models/user');
 
-// Khalti configuration
-const KHALTI_SECRET_KEY = '30b1378dd0a94714b1bb34494df6ee02';
+const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY;
 const KHALTI_BASE_URL = 'https://dev.khalti.com/api/v2';
 
 console.log('Khalti Configuration:', {
@@ -11,7 +10,6 @@ console.log('Khalti Configuration:', {
     keyLength: KHALTI_SECRET_KEY.length
 });
 
-// Create axios instance for Khalti API
 const khaltiClient = axios.create({
     baseURL: KHALTI_BASE_URL,
     headers: {
@@ -20,7 +18,6 @@ const khaltiClient = axios.create({
     },
 });
 
-// Add request interceptor for logging
 khaltiClient.interceptors.request.use(
     config => {
         console.log('Khalti API Request:', {
@@ -40,7 +37,6 @@ khaltiClient.interceptors.request.use(
     }
 );
 
-// Add response interceptor for logging
 khaltiClient.interceptors.response.use(
     response => {
         console.log('Khalti API Response:', {
@@ -67,9 +63,7 @@ khaltiClient.interceptors.response.use(
     }
 );
 
-/**
- * Initiate Khalti payment
- */
+
 const initiatePayment = async (req, res) => {
     console.log('=== Payment Initiation Started ===');
     console.log('Request body:', req.body);
@@ -87,7 +81,6 @@ const initiatePayment = async (req, res) => {
     }
 
     try {
-        // Verify user exists
         console.log('Looking up user in database...');
         const user = await User.findById(userId);
         if (!user) {
@@ -100,10 +93,9 @@ const initiatePayment = async (req, res) => {
 
         console.log('User found:', { id: user._id, email: user.email });
 
-        // Generate a unique purchase order ID
         const purchase_order_id = `premium_${Date.now()}`;
         const purchase_order_name = 'Premium Membership Upgrade';
-        const amountInPaisa = amount * 100; // Convert to paisa
+        const amountInPaisa = amount * 100; 
 
         const paymentData = {
             return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/my-plan`,
@@ -124,7 +116,6 @@ const initiatePayment = async (req, res) => {
 
         const khaltiResponse = await khaltiClient.post('/epayment/initiate/', paymentData);
 
-        // Store the purchase order ID in the user's record for verification
         user.payment = {
             purchase_order_id,
             amount: amountInPaisa,
@@ -165,9 +156,7 @@ const initiatePayment = async (req, res) => {
     }
 };
 
-/**
- * Verify Khalti payment and update user premium status
- */
+
 const verifyPayment = async (req, res) => {
     console.log('=== Payment Verification Started ===');
     console.log('Request body:', req.body);
@@ -199,7 +188,6 @@ const verifyPayment = async (req, res) => {
         const verificationResponse = await khaltiClient.post('/epayment/lookup/', { pidx });
 
         if (verificationResponse.data.status === 'Completed') {
-            // Update user's premium status
             user.premium = true;
             user.premiumSince = new Date();
             user.payment = {

@@ -12,11 +12,11 @@ const getUniversities = async () => {
 
 const getUniversityById = async (id) => {
     try {
-        console.log(`Fetching university with ID: ${id}`);
-        const response = await API.get(`/universities/${id}`);
-        console.log('University API response:', response);
-
         
+        const response = await API.get(`/universities/${id}`);
+        
+
+
         const universityData = response.data?.university || response.data;
         if (!universityData) {
             throw new Error('No university data found in response');

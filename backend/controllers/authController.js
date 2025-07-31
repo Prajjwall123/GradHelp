@@ -6,10 +6,10 @@ const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 
 class AuthController {
-    // Login user and return tokens
+    
     static async login(req, res) {
         try {
-            // Validate request
+            
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
@@ -23,7 +23,7 @@ class AuthController {
             const ipAddress = req.ip;
             const userAgent = req.get('user-agent');
 
-            // Find user by email
+            
             const user = await User.findOne({ email });
             if (!user) {
                 return res.status(401).json({
@@ -32,7 +32,7 @@ class AuthController {
                 });
             }
 
-            // Check password
+            
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) {
                 return res.status(401).json({
@@ -41,9 +41,9 @@ class AuthController {
                 });
             }
 
-            // Check if MFA is enabled for this user
+            
             if (user.mfaEnabled) {
-                // Generate a temporary token for MFA verification
+                
                 const tempToken = jwt.sign(
                     {
                         userId: user._id,
@@ -51,10 +51,10 @@ class AuthController {
                         purpose: 'mfa_verification'
                     },
                     process.env.JWT_SECRET,
-                    { expiresIn: '5m' } // Short-lived token for MFA verification
+                    { expiresIn: '5m' } 
                 );
 
-                // Generate CSRF token for MFA step as well (optional)
+                
                 const { generateCSRFToken } = require('../middleware/csrfProtection');
                 const csrfToken = generateCSRFToken(user._id);
                 res.setHeader('X-CSRF-Token', csrfToken);
@@ -72,20 +72,20 @@ class AuthController {
                 });
             }
 
-            // Generate tokens for non-MFA login
+            
             const { accessToken, refreshToken } = await this.generateAndSendTokens(user, res, ipAddress, userAgent);
 
-            // Generate CSRF token after successful login
+            
             const { generateCSRFToken } = require('../middleware/csrfProtection');
             const csrfToken = generateCSRFToken(user._id);
             res.setHeader('X-CSRF-Token', csrfToken);
 
-            // Return user data with tokens
+            
             res.status(200).json({
                 success: true,
                 accessToken,
                 refreshToken: refreshToken.token,
-                expiresIn: 15 * 60, // 15 minutes in seconds
+                expiresIn: 15 * 60, 
                 user: {
                     id: user._id,
                     email: user.email,
@@ -105,7 +105,7 @@ class AuthController {
         }
     }
 
-    // Refresh access token
+    
     static async refreshToken(req, res) {
         try {
             const token = req.cookies.refreshToken || req.body.refreshToken;
@@ -118,7 +118,7 @@ class AuthController {
                 });
             }
 
-            // Verify refresh token and get user
+            
             const user = await TokenService.verifyRefreshToken(token, ipAddress);
             if (!user) {
                 return res.status(401).json({
@@ -127,27 +127,27 @@ class AuthController {
                 });
             }
 
-            // Generate new access token
+            
             const accessToken = TokenService.generateAccessToken(user);
 
-            // Optionally generate new refresh token (token rotation)
+            
             const refreshToken = await TokenService.generateRefreshToken(user, ipAddress, req.get('user-agent'));
 
-            // Set new refresh token in cookie
+            
             res.cookie('refreshToken', refreshToken.token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: 7 * 24 * 60 * 60 * 1000, 
                 path: '/api/auth/refresh-token'
             });
 
-            // Return new tokens
+            
             res.status(200).json({
                 success: true,
                 accessToken,
                 refreshToken: refreshToken.token,
-                expiresIn: 15 * 60, // 15 minutes in seconds
+                expiresIn: 15 * 60, 
                 user: {
                     id: user._id,
                     email: user.email,
@@ -165,24 +165,24 @@ class AuthController {
         }
     }
 
-    // Generate tokens and set refresh token cookie
+    
     static async generateAndSendTokens(user, res, ipAddress, userAgent) {
         const accessToken = TokenService.generateAccessToken(user);
         const refreshToken = await TokenService.generateRefreshToken(user, ipAddress, userAgent);
 
-        // Set refresh token in HTTP-only cookie
+        
         res.cookie('refreshToken', refreshToken.token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000, 
             path: '/api/auth/refresh-token'
         });
 
         return { accessToken, refreshToken };
     }
 
-    // Verify MFA token and complete login
+    
     static async verifyMfaLogin(req, res) {
         try {
             console.log('MFA Verification - Request Body:', JSON.stringify(req.body, null, 2));
@@ -200,7 +200,7 @@ class AuthController {
 
             let decoded;
             try {
-                // Verify temp token
+                
                 decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
                 console.log('MFA Verification - Decoded token:', JSON.stringify(decoded, null, 2));
 
@@ -221,7 +221,7 @@ class AuthController {
                 });
             }
 
-            // Get user with mfaSecret
+            
             console.log('MFA Verification - Looking up user with ID:', decoded.userId);
             const user = await User.findById(decoded.userId).select('+mfaSecret');
             console.log('MFA Verification - Retrieved user:', {
@@ -240,7 +240,7 @@ class AuthController {
                 });
             }
 
-            // Verify MFA token with detailed logging
+            
             console.log('MFA Verification - Verifying token for user:', user.email);
             console.log('MFA Verification - MFA Secret (first 5 chars):', user.mfaSecret ? user.mfaSecret.substring(0, 5) + '...' : 'undefined');
             console.log('MFA Verification - Token received:', token);
@@ -254,7 +254,7 @@ class AuthController {
                 });
             }
 
-            // Generate current and previous/next tokens to account for clock drift
+            
             const currentToken = speakeasy.totp({
                 secret: user.mfaSecret,
                 encoding: 'base32',
@@ -265,14 +265,14 @@ class AuthController {
                 secret: user.mfaSecret,
                 encoding: 'base32',
                 step: 30,
-                time: Date.now() - 30000 // Previous 30-second window
+                time: Date.now() - 30000 
             });
 
             const nextToken = speakeasy.totp({
                 secret: user.mfaSecret,
                 encoding: 'base32',
                 step: 30,
-                time: Date.now() + 30000 // Next 30-second window
+                time: Date.now() + 30000 
             });
 
             console.log('MFA Verification - Current token window:', {
@@ -281,7 +281,7 @@ class AuthController {
                 next: nextToken
             });
 
-            // Check if the provided token matches any of the valid tokens
+            
             const tokenStr = token.toString().trim();
             const isValidToken = [previousToken, currentToken, nextToken].includes(tokenStr);
 
@@ -304,22 +304,22 @@ class AuthController {
                 });
             }
 
-            // Generate tokens and complete login
+            
             const ipAddress = req.ip;
             const userAgent = req.get('user-agent');
             const { accessToken, refreshToken } = await this.generateAndSendTokens(user, res, ipAddress, userAgent);
 
-            // Generate CSRF token after successful login
+            
             const { generateCSRFToken } = require('../middleware/csrfProtection');
             const csrfToken = generateCSRFToken(user._id);
             res.setHeader('X-CSRF-Token', csrfToken);
 
-            // Return success response
+            
             res.status(200).json({
                 success: true,
                 accessToken,
                 refreshToken: refreshToken.token,
-                expiresIn: 15 * 60, // 15 minutes in seconds
+                expiresIn: 15 * 60, 
                 user: {
                     id: user._id,
                     email: user.email,
@@ -345,7 +345,7 @@ class AuthController {
         }
     }
 
-    // Logout user by revoking refresh token
+    
     static async logout(req, res) {
         try {
             const token = req.cookies.refreshToken || req.body.refreshToken;
@@ -355,7 +355,7 @@ class AuthController {
                 await TokenService.revokeToken(token, ipAddress);
             }
 
-            // Clear the refresh token cookie
+            
             res.clearCookie('refreshToken', {
                 path: '/api/auth/refresh-token'
             });
@@ -374,7 +374,7 @@ class AuthController {
         }
     }
 
-    // Get current user's refresh tokens
+    
     static async getRefreshTokens(req, res) {
         try {
             const tokens = await TokenService.getRefreshTokens(req.user._id);
@@ -391,7 +391,7 @@ class AuthController {
         }
     }
 
-    // Revoke a specific refresh token
+    
     static async revokeToken(req, res) {
         try {
             const { token } = req.body;

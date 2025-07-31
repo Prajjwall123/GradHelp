@@ -12,7 +12,7 @@ import { updateProfile, getProfile } from '../../utils/profileHelper';
 import { isAuthenticated } from '../../utils/authHelper';
 import sanitizeInput from '../../utils/sanitizeInput';
 
-// Profile image
+
 import profileImage from '../../assets/profile-side-image.jpg';
 
 const steps = [
@@ -30,7 +30,7 @@ const ProfileStepper = () => {
     const navigate = useNavigate();
     const hasShownWelcome = useRef(false);
     const [formData, setFormData] = useState({
-        // Personal info
+
         gender: '',
         address: '',
         city: '',
@@ -39,7 +39,7 @@ const ProfileStepper = () => {
         full_name: '',
         email: '',
 
-        // Education
+
         institution_name: '',
         field_of_study: '',
         highest_education_level: '',
@@ -48,7 +48,7 @@ const ProfileStepper = () => {
         currently_enrolled: false,
         graduation_status: false,
 
-        // Visa
+
         visa_application_country: '',
         visa_type: '',
         currently_hold_a_visa: false,
@@ -57,7 +57,7 @@ const ProfileStepper = () => {
         visa_refusal_details: '',
         visa_history: [],
 
-        // English Test
+
         english_test_type: '',
         english_test_scores: {
             listening: '',
@@ -69,7 +69,7 @@ const ProfileStepper = () => {
         has_taken_test: false,
         no_test_planned: false,
 
-        // File paths
+
         education_transcript: '',
         english_transcript: ''
     });
@@ -91,9 +91,9 @@ const ProfileStepper = () => {
                 if (response && response.success && response.profile) {
                     const { profile } = response;
 
-                    // Map the profile data to match the form structure
+
                     const mappedData = {
-                        // Personal info
+
                         gender: profile.gender || '',
                         address: profile.address || '',
                         city: profile.city || '',
@@ -102,7 +102,7 @@ const ProfileStepper = () => {
                         full_name: profile.full_name || '',
                         email: profile.email || '',
 
-                        // Education
+
                         institution_name: profile.institution_name || '',
                         field_of_study: profile.field_of_study || '',
                         highest_education_level: profile.highest_education_level || '',
@@ -111,7 +111,7 @@ const ProfileStepper = () => {
                         currently_enrolled: profile.currently_enrolled || false,
                         graduation_status: profile.graduation_status || false,
 
-                        // Visa
+
                         visa_application_country: profile.visa_application_country || '',
                         visa_type: profile.visa_type || '',
                         currently_hold_a_visa: profile.currently_hold_a_visa || false,
@@ -120,7 +120,7 @@ const ProfileStepper = () => {
                         visa_refusal_details: profile.visa_refusal_details || '',
                         visa_history: profile.visa_history || [],
 
-                        // English Test
+
                         english_test_type: profile.english_test?.test_type || '',
                         english_test_scores: {
                             listening: profile.english_test?.listening || '',
@@ -130,9 +130,9 @@ const ProfileStepper = () => {
                         },
                         test_date: profile.english_test?.exam_date || '',
                         has_taken_test: !!(profile.english_test?.test_type),
-                        no_test_planned: false, // Default value
+                        no_test_planned: false,
 
-                        // File paths
+
                         education_transcript: profile.education_transcript || '',
                         english_transcript: profile.english_test?.transcript || ''
                     };
@@ -150,7 +150,7 @@ const ProfileStepper = () => {
         fetchProfile();
     }, [navigate]);
 
-    // Save form data to API
+
     const saveFormData = async (data) => {
         try {
             setIsSubmitting(true);
@@ -168,18 +168,18 @@ const ProfileStepper = () => {
     const handleNext = async (e) => {
         if (e) e.preventDefault();
 
-        // Save form data
+
         const success = await saveFormData(formData);
         if (success) {
             if (activeStep < steps.length - 1) {
                 setActiveStep(prev => prev + 1);
             } else {
-                // Show success toast
+
                 toast.success('Profile updated successfully!');
-                console.log('Profile update complete');
+
                 setTimeout(() => {
                     navigate('/dashboard');
-                }, 1500); // Navigate to dashboard after 1.5 seconds
+                }, 1500);
             }
         }
     };
@@ -196,8 +196,8 @@ const ProfileStepper = () => {
         const success = await saveFormData(formData);
         if (success) {
             toast.success('Profile updated successfully!');
-            console.log('Profile update complete');
-            // Navigate to dashboard after 1.5 seconds
+
+
             setTimeout(() => {
                 navigate('/dashboard');
             }, 1500);
@@ -205,7 +205,7 @@ const ProfileStepper = () => {
     };
 
     const handleChange = (e) => {
-        // Check if the event has a target and name property
+
         if (!e || !e.target) {
             console.warn('Event or event target is undefined');
             return;
@@ -213,19 +213,19 @@ const ProfileStepper = () => {
 
         const { name, value, type, checked } = e.target;
 
-        // Log a warning if name is missing but don't block the event
+
         if (!name) {
             console.warn('Input element is missing name attribute:', e.target);
             return;
         }
 
-        // For text inputs, sanitize the value before updating state
+
         const sanitizedValue = (type === 'text' || type === 'textarea')
             ? sanitizeInput(value, { allowBasicFormatting: false, stripHtml: true })
             : value;
 
         setFormData(prev => {
-            // Handle nested objects (e.g., english_test.reading)
+
             if (name.includes('.')) {
                 const [parent, child] = name.split('.');
                 return {
@@ -237,7 +237,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Handle date fields
+
             if (name === 'date_of_birth' || name === 'application_date' || name === 'exam_date') {
                 return {
                     ...prev,
@@ -245,7 +245,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Handle checkboxes
+
             if (type === 'checkbox') {
                 return {
                     ...prev,
@@ -253,7 +253,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Handle number inputs
+
             if (type === 'number') {
                 return {
                     ...prev,
@@ -261,7 +261,7 @@ const ProfileStepper = () => {
                 };
             }
 
-            // Default case for text inputs
+
             return {
                 ...prev,
                 [name]: sanitizedValue

@@ -90,7 +90,7 @@ const SOPWriter = () => {
 
     useEffect(() => {
         if (location.state?.course && location.state?.university) {
-            console.log('University data:', location.state.university);
+            //console.log('University data:', location.state.university);
             setCourseData({
                 courseName: location.state.course.course_name || 'Computer Science',
                 universityName: location.state.university.university_name || 'Stanford University',

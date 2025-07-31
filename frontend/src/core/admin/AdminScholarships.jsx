@@ -11,7 +11,7 @@ const AdminScholarships = () => {
   const [form] = Form.useForm();
   const [universities, setUniversities] = useState([]);
 
-  // Load data
+  
   const loadData = async () => {
     try {
       setLoading(true);
@@ -28,7 +28,7 @@ const AdminScholarships = () => {
     }
   };
 
-  // Handle form submit
+  
   const handleSubmit = async (values) => {
     try {
       if (editingId) {
@@ -46,7 +46,7 @@ const AdminScholarships = () => {
     }
   };
 
-  // Handle delete
+  
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this scholarship?')) return;
     try {
@@ -58,7 +58,7 @@ const AdminScholarships = () => {
     }
   };
 
-  // Set up edit form
+  
   const handleEdit = (scholarship) => {
     setEditingId(scholarship._id);
     form.setFieldsValue({
@@ -70,12 +70,12 @@ const AdminScholarships = () => {
     setModalVisible(true);
   };
 
-  // Load data on mount
+  
   useEffect(() => {
     loadData();
   }, []);
 
-  // Table columns
+  
   const columns = [
     { 
       title: 'Name', 
@@ -87,7 +87,7 @@ const AdminScholarships = () => {
       title: 'University', 
       key: 'university',
       render: (_, record) => {
-        // Find the university name from the universities list
+        
         const uni = universities.find(u => u._id === record.university);
         return uni?.name || 'N/A';
       },

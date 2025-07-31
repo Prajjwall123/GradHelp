@@ -24,7 +24,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
 
             recognitionRef.current.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                console.log('Voice input:', transcript);
+                //console.log('Voice input:', transcript);
                 const voicePrompt = `Current SOP: ${currentSOP}\n\nUser request: ${transcript}`;
                 handleSendMessage(voicePrompt);
             };
@@ -96,10 +96,8 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
     const handleSendMessage = async (message = input) => {
         if (!message.trim()) return;
 
-        // Check if this is a voice message with SOP included
         const isVoiceWithSOP = message.includes('Current SOP:');
 
-        // For display, extract just the user's message part if it's a voice message
         const displayMessage = isVoiceWithSOP
             ? message.split('User request:')[1]?.trim() || message
             : message;
@@ -116,14 +114,13 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
         setIsLoading(true);
 
         try {
-            console.log('Sending message to backend...');
+            //console.log('Sending message to backend...');
 
             const token = getToken();
             if (!token) {
                 throw new Error('Authentication required');
             }
 
-            // Prepare the message for the backend
             const backendMessage = isVoiceWithSOP
                 ? message
                 : `Current SOP: ${currentSOP}\n\nUser request: ${message}`;
@@ -143,7 +140,7 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
                 }
             );
 
-            console.log('Response received from backend');
+            //console.log('Response received from backend');
             const responseText = response.data.response;
 
             const assistantMessage = {
@@ -155,12 +152,10 @@ const VoiceChatBot = ({ onMessage, initialMessages = [], currentSOP = '' }) => {
 
             setMessages(prev => [...prev, assistantMessage]);
 
-            // Call the onMessage callback if provided (for SOP updates)
             if (onMessage) {
                 onMessage(assistantMessage.content);
             }
 
-            // Auto-speak the response if speaking is enabled
             if (isSpeaking) {
                 speak(responseText);
             }

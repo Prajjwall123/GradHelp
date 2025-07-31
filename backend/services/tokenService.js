@@ -1,10 +1,6 @@
 const jwt = require('jsonwebtoken');
 const RefreshToken = require('../models/refreshToken');
-const User = require('../models/user');
-
 const JWT_SECRET = process.env.JWT_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-
 const ACCESS_TOKEN_EXPIRY = 15 * 60; 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; 
 

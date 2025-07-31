@@ -19,7 +19,6 @@ const MfaSetup = ({ onSetupComplete }) => {
 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
-  // Generate QR code data URL
   useEffect(() => {
     const generateQRCode = async () => {
       if (mfaData?.otpUrl) {
@@ -35,7 +34,6 @@ const MfaSetup = ({ onSetupComplete }) => {
     generateQRCode();
   }, [mfaData]);
 
-  // Initialize MFA setup
   const startMfaSetup = async () => {
     try {
       setLoading(true);
@@ -55,7 +53,6 @@ const MfaSetup = ({ onSetupComplete }) => {
     }
   };
 
-  // Verify the MFA setup
   const verifyMfaSetup = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
       setError('Please enter a valid 6-digit code');
@@ -83,7 +80,6 @@ const MfaSetup = ({ onSetupComplete }) => {
     }
   };
 
-  // Copy backup codes to clipboard
   const copyBackupCodes = () => {
     const codes = backupCodes.map(code => code.plain).join('\n');
     navigator.clipboard.writeText(codes);
@@ -93,7 +89,6 @@ const MfaSetup = ({ onSetupComplete }) => {
     setTimeout(() => setCopied(false), 3000);
   };
 
-  // Download backup codes as a text file
   const downloadBackupCodes = () => {
     const element = document.createElement('a');
     const file = new Blob(
@@ -113,17 +108,15 @@ const MfaSetup = ({ onSetupComplete }) => {
     document.body.removeChild(element);
   };
 
-  // Complete the setup
   const completeSetup = () => {
     if (onSetupComplete) {
       onSetupComplete();
     }
   };
 
-  // Render the current step
   const renderStep = () => {
     switch (currentStep) {
-      case 0: // Start setup
+      case 0: 
         return (
           <div className="text-center">
             <div className="mb-6">
@@ -150,7 +143,7 @@ const MfaSetup = ({ onSetupComplete }) => {
           </div>
         );
 
-      case 1: // Scan QR code
+      case 1: 
         return (
           <div>
             <div className="text-center mb-6">
@@ -231,7 +224,7 @@ const MfaSetup = ({ onSetupComplete }) => {
           </div>
         );
 
-      case 2: // Show backup codes
+      case 2:
         return (
           <div>
             <div className="text-center mb-6">

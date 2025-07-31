@@ -10,7 +10,7 @@ const AdminCourses = () => {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  // Load courses
+  
   const loadCourses = async () => {
     try {
       setLoading(true);
@@ -23,7 +23,7 @@ const AdminCourses = () => {
     }
   };
 
-  // Handle form submit
+  
   const handleSubmit = async (values) => {
     try {
       if (editingId) {
@@ -41,7 +41,7 @@ const AdminCourses = () => {
     }
   };
 
-  // Handle delete
+  
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this course?')) return;
     try {
@@ -53,7 +53,7 @@ const AdminCourses = () => {
     }
   };
 
-  // Set up edit form
+  
   const handleEdit = (course) => {
     setEditingId(course._id);
     form.setFieldsValue({
@@ -72,12 +72,12 @@ const AdminCourses = () => {
     setModalVisible(true);
   };
 
-  // Load data on mount
+  
   useEffect(() => {
     loadCourses();
   }, []);
 
-  // Table columns
+  
   const columns = [
     { 
       title: 'Name', 

@@ -4,7 +4,7 @@ export const updateProfile = async (profileData) => {
     try {
         const formData = new FormData();
 
-        // Helper function to safely append data to formData
+        
         const safeAppendData = (key, value) => {
             if (value === null || value === undefined) return;
 
@@ -13,7 +13,7 @@ export const updateProfile = async (profileData) => {
                 return;
             }
 
-            // Handle nested objects
+            
             if (typeof value === 'object' && !Array.isArray(value)) {
                 Object.entries(value).forEach(([nestedKey, nestedValue]) => {
                     if (nestedValue !== null && nestedValue !== undefined) {
@@ -25,11 +25,11 @@ export const updateProfile = async (profileData) => {
             }
         };
 
-        // Process all profile data
+        
         Object.entries(profileData).forEach(([key, value]) => {
             if (value === null || value === undefined) return;
 
-            // Special handling for english_test
+            
             if (key === 'english_test' && value) {
                 Object.entries(value).forEach(([nestedKey, nestedValue]) => {
                     if (nestedValue === null || nestedValue === undefined) return;
@@ -43,12 +43,12 @@ export const updateProfile = async (profileData) => {
                     }
                 });
             }
-            // Handle file uploads
+            
             else if ((key === 'education_transcript' && value) ||
                 (key === 'english_transcript' && value)) {
                 formData.append(key, value);
             }
-            // Handle other fields
+            
             else {
                 safeAppendData(key, value);
             }
@@ -73,7 +73,7 @@ export const getProfile = async () => {
         return response.data;
     } catch (error) {
         console.error('Error fetching profile:', error);
-        // If it's a 404, return null to indicate no profile exists
+        
         if (error.response?.status === 404) {
             return { success: true, profile: null };
         }

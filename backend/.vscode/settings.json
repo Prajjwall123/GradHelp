@@ -1,0 +1,6 @@
+{
+    "zencoder.codeCompletion.enable": false,
+    "zencoder.codeCompletion.enableMultiLine": false,
+    "zencoder.enableCodeLenses": false,
+    "zencoder.enableShellTool": false
+}

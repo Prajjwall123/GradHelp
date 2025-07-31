@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 import fs from 'fs'
 import path from 'path'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
@@ -12,6 +11,9 @@ export default defineConfig({
     https: {
       key: fs.readFileSync(path.resolve(__dirname, "cert", "server.key")),
       cert: fs.readFileSync(path.resolve(__dirname, "cert", "server.crt")),
-    },
+    }
   },
+  esbuild: {
+    sourcemap: process.env.VITE_DISABLE_SOURCEMAP ? false : true
+  }
 })

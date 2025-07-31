@@ -3,17 +3,17 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  important: true,  // Add this to ensure our styles take precedence
+  important: true,  
   theme: {
     extend: {
       colors: {
-        primary: '#000000',  // Black as primary
-        secondary: '#1f2937',  // Dark gray as secondary
-        accent: '#4b5563',  // Medium gray as accent
+        primary: '#000000',  
+        secondary: '#1f2937',  
+        accent: '#4b5563',  
         background: {
           light: '#f9fafb',
           DEFAULT: '#ffffff',
-          dark: '#111827',  // Very dark gray/black
+          dark: '#111827',  
         },
         text: {
           primary: '#111827',

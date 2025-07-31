@@ -23,7 +23,7 @@ const VisaStep = ({ formData, handleChange }) => {
     const handleTextInputChange = (e) => {
         const { name, value } = e.target;
 
-        // Only proceed if name exists
+        
         if (!name) {
             console.error('Input element is missing name attribute');
             return;
@@ -34,23 +34,23 @@ const VisaStep = ({ formData, handleChange }) => {
             stripHtml: true
         });
 
-        // Create a new synthetic event with all original properties
+        
         const syntheticEvent = {
             ...e,
             target: {
                 ...e.target,
-                name, // Make sure name is included
+                name, 
                 value: sanitizedValue
             },
             currentTarget: {
                 ...e.currentTarget,
-                name, // Also include name in currentTarget
+                name, 
                 value: sanitizedValue
             },
-            persist: () => { } // Add empty persist method to prevent errors
+            persist: () => { } 
         };
 
-        // If this is a year field, perform additional validation
+        
         if (name === 'application_year') {
             handleYearChange(syntheticEvent);
         } else {
@@ -70,17 +70,17 @@ const VisaStep = ({ formData, handleChange }) => {
 
         setYearError('');
 
-        // Create a new synthetic event with all original properties
+        
         const syntheticEvent = {
             ...e,
             target: {
                 ...e.target,
-                name, // Make sure name is included
+                name, 
                 value: year.toString()
             },
             currentTarget: {
                 ...e.currentTarget,
-                name, // Also include name in currentTarget
+                name, 
                 value: year.toString()
             },
             persist: () => { }

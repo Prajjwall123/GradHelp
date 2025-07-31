@@ -26,9 +26,9 @@ const getScholarshipsByIds = async (ids) => {
 
 const getScholarshipsByUniversityId = async (universityId) => {
     try {
-        console.log(`Fetching scholarships for university ID: ${universityId}`);
+        
         const response = await API.get(`/scholarships/university/${universityId}`);
-        console.log('Scholarships API response:', response);
+        
 
         return Array.isArray(response.data?.scholarships) ? response.data.scholarships : [];
     } catch (error) {

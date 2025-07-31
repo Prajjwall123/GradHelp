@@ -23,7 +23,6 @@ const AdminApplications = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [fileList, setFileList] = useState([]);
 
-  // Basic application columns
   const applicationColumns = [
     {
       title: 'Application ID',
@@ -108,16 +107,13 @@ const AdminApplications = () => {
     },
   ];
 
-  // Fetch applications
   const fetchApplications = async (type) => {
     try {
       setLoading(prev => ({ ...prev, [type]: true }));
 
       if (type === 'university') {
-        // Get all applications for admin
         const response = await API.get('/applications/admin/all');
 
-        // Transform the data to match the expected format
         const formattedData = response.data.map(app => ({
           ...app,
           user: app.profile?.user || { fullName: 'Unknown' },
@@ -126,10 +122,8 @@ const AdminApplications = () => {
 
         setUniversityApps(formattedData);
       } else {
-        // Get all scholarship applications for admin
         const response = await API.get('/scholarship-applications');
 
-        // Transform the data to match the expected format
         const formattedData = response.data.map(app => ({
           ...app,
           user: app.profile?.user || { fullName: 'Unknown' },
@@ -140,14 +134,12 @@ const AdminApplications = () => {
       }
     } catch (error) {
       console.error(`Error fetching ${type} applications:`, error);
-      // Show error message to user
       message.error(`Failed to load ${type} applications. Please try again later.`);
     } finally {
       setLoading(prev => ({ ...prev, [type]: false }));
     }
   };
 
-  // Handle accept application
   const handleAccept = async (applicationId) => {
     try {
       setLoading(prev => ({ ...prev, accept: true }));
@@ -155,7 +147,6 @@ const AdminApplications = () => {
       const formData = new FormData();
       formData.append('message', 'Your application has been accepted.');
 
-      // Add file if uploaded
       if (fileList.length > 0) {
         formData.append('file', fileList[0].originFileObj);
       }
@@ -166,7 +157,6 @@ const AdminApplications = () => {
         },
       });
 
-      // Update the local state to reflect the change
       if (activeTab === 'university') {
         setUniversityApps(prev =>
           prev.map(app =>
@@ -196,19 +186,16 @@ const AdminApplications = () => {
     }
   };
 
-  // Show application details
   const showApplicationDetails = (application) => {
     setSelectedApp(application);
     setDetailsModalVisible(true);
   };
 
-  // Show reject modal
   const showRejectModal = (application) => {
     setSelectedApp(application);
     setRejectModalVisible(true);
   };
 
-  // Handle reject application
   const handleReject = async () => {
     if (!rejectReason.trim()) {
       message.warning('Please provide a reason for rejection');
@@ -221,7 +208,6 @@ const AdminApplications = () => {
       const formData = new FormData();
       formData.append('message', rejectReason);
 
-      // Add file if uploaded
       if (fileList.length > 0) {
         formData.append('file', fileList[0].originFileObj);
       }
@@ -232,7 +218,6 @@ const AdminApplications = () => {
         },
       });
 
-      // Update the local state to reflect the change
       if (activeTab === 'university') {
         setUniversityApps(prev =>
           prev.map(app =>
@@ -264,12 +249,10 @@ const AdminApplications = () => {
     }
   };
 
-  // Handle file upload
   const handleUpload = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
 
-  // Load data when tab changes
   useEffect(() => {
     if ((activeTab === 'university' && universityApps.length === 0) ||
       (activeTab === 'scholarship' && scholarshipApps.length === 0)) {
@@ -362,7 +345,7 @@ const AdminApplications = () => {
           <Upload
             fileList={fileList}
             onChange={handleUpload}
-            beforeUpload={() => false} // Prevent auto upload
+            beforeUpload={() => false} 
             maxCount={1}
           >
             <Button icon={<UploadOutlined />}>Select File</Button>

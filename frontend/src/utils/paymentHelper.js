@@ -1,10 +1,6 @@
 import API from './api';
 
-/**
- * Initiates a payment for premium membership
- * @param {number} amount - The amount to be paid in NPR
- * @returns {Promise<Object>} - The payment initiation response
- */
+
 export const initiatePayment = async (amount) => {
     try {
         const response = await API.post('/payments/initiate', { amount });
@@ -23,11 +19,7 @@ export const initiatePayment = async (amount) => {
     }
 };
 
-/**
- * Verifies a payment using the pidx
- * @param {string} pidx - The payment identifier from Khalti
- * @returns {Promise<Object>} - The payment verification response
- */
+
 export const verifyPayment = async (pidx) => {
     try {
         const response = await API.post('/payments/verify', { pidx });
@@ -46,10 +38,7 @@ export const verifyPayment = async (pidx) => {
     }
 };
 
-/**
- * Fetches the user's premium status
- * @returns {Promise<Object>} - The premium status response
- */
+
 export const getPremiumStatus = async () => {
     try {
         const response = await API.get('/users/premium-status');

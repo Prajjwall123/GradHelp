@@ -12,11 +12,10 @@ const MfaVerification = ({ tempToken, user, onBack, onComplete }) => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(300);
   const [error, setError] = useState('');
   const [resending, setResending] = useState(false);
 
-  // Countdown timer for the temporary token
   useEffect(() => {
     if (timeLeft <= 0) {
       setError('Verification code has expired. Please try logging in again.');
@@ -31,15 +30,14 @@ const MfaVerification = ({ tempToken, user, onBack, onComplete }) => {
     try {
       setResending(true);
       setError('');
-      
-      // Call the login API again to get a new temp token
+
       const response = await authApi.login({
         email: user.email,
-        password: '' // Password is not needed as we already have a valid session
+        password: ''
       });
 
       if (response.data.requiresMFA) {
-        setTimeLeft(300); // Reset the timer
+        setTimeLeft(300);
         form.resetFields();
       }
     } catch (error) {
@@ -60,24 +58,22 @@ const MfaVerification = ({ tempToken, user, onBack, onComplete }) => {
     try {
       setLoading(true);
       setError('');
-      
-      console.log('Submitting MFA verification with code:', values.code);
-      console.log('Using tempToken (first 10 chars):', tempToken ? `${tempToken.substring(0, 10)}...` : 'undefined');
-      
+
+      //console.log('Submitting MFA verification with code:', values.code);
+      //console.log('Using tempToken (first 10 chars):', tempToken ? `${tempToken.substring(0, 10)}...` : 'undefined');
+
       const response = await authApi.verifyMfaLogin({
-        token: values.code.toString().trim(), // Ensure code is a string and trim whitespace
-        tempToken: tempToken?.trim() // Ensure tempToken is a string and trim whitespace
+        token: values.code.toString().trim(),
+        tempToken: tempToken?.trim()
       });
 
-      console.log('MFA verification response:', response);
+      //console.log('MFA verification response:', response);
 
       if (response.data?.success) {
-        // Call the onComplete handler with the response data
         if (onComplete) {
           onComplete(response.data);
         }
       } else {
-        // Handle different error cases
         const errorMessage = response.data?.message || 'Failed to verify MFA code. Please try again.';
         console.error('MFA verification failed:', errorMessage, response.data);
         throw new Error(errorMessage);
@@ -94,15 +90,15 @@ const MfaVerification = ({ tempToken, user, onBack, onComplete }) => {
 
   return (
     <div className="auth-form-container">
-      <Button 
-        type="text" 
-        icon={<ArrowLeftOutlined />} 
+      <Button
+        type="text"
+        icon={<ArrowLeftOutlined />}
         onClick={onBack}
         className="mb-4 p-0"
       >
         Back to login
       </Button>
-      
+
       <div className="auth-form">
         <div className="text-center mb-6">
           <Title level={3} className="mb-2">Two-Factor Authentication</Title>
@@ -159,11 +155,11 @@ const MfaVerification = ({ tempToken, user, onBack, onComplete }) => {
               <Text type="secondary">
                 Code expires in: <span className="font-medium">{formatTime(timeLeft)}</span>
               </Text>
-              <Button 
-                type="link" 
+              <Button
+                type="link"
                 onClick={handleResendCode}
                 loading={resending}
-                disabled={timeLeft > 240} // Only allow resend after 1 minute
+                disabled={timeLeft > 240}
                 className="p-0 h-auto"
               >
                 Resend code{timeLeft > 240 ? ` (${Math.ceil((timeLeft - 240) / 60)}m)` : ''}

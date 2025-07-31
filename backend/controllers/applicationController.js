@@ -94,7 +94,7 @@ const getApplicationById = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-        // Verify that the application belongs to the user
+        
         const userId = req.user._id;
         if (String(application.profile.user) !== String(userId)) {
             return res.status(403).json({ message: "Not authorized to view this application" });
@@ -125,7 +125,7 @@ const getApplicationsByProfile = async (req, res) => {
     }
 };
 
-//admin
+
 const updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body;
@@ -138,7 +138,7 @@ const updateApplicationStatus = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-        // Verify that the application belongs to the user
+        
         if (String(application.profile.user) !== String(userId)) {
             return res.status(403).json({ message: "Not authorized to update this application" });
         }
@@ -163,7 +163,7 @@ const deleteApplication = async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-        // Verify that the application belongs to the user
+        
         if (String(application.profile.user) !== String(userId)) {
             return res.status(403).json({ message: "Not authorized to delete this application" });
         }
@@ -236,7 +236,7 @@ const updateApplicationSOP = async (req, res) => {
             });
         }
 
-        // Additional security check
+        
         if (hasMongoOperators({ sop })) {
             return res.status(400).json({
                 success: false,
@@ -264,7 +264,7 @@ const updateApplicationSOP = async (req, res) => {
             });
         }
 
-        // Verify that the application belongs to the user
+        
         if (String(application.profile.user) !== String(userId)) {
             return res.status(403).json({ message: "Not authorized to update this application" });
         }

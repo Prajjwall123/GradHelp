@@ -4,7 +4,7 @@ const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// Initialize Gemini
+
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
     console.error('GEMINI_API_KEY is not defined in environment variables');
@@ -28,7 +28,7 @@ const getModelConfig = () => ({
     ],
 });
 
-// Generate SOP suggestion
+
 router.post('/sop/suggest', authLimiter, async (req, res) => {
     try {
         const { prompt, currentSOP = '' } = req.body;
@@ -106,7 +106,7 @@ router.post('/sop/suggest', authLimiter, async (req, res) => {
     }
 });
 
-// Analyze SOP
+
 router.post('/sop/analyze', authLimiter, async (req, res) => {
     try {
         const { sopText } = req.body;
@@ -150,7 +150,7 @@ router.post('/sop/analyze', authLimiter, async (req, res) => {
     }
 });
 
-// Chat endpoint
+
 router.post('/chat', authLimiter, async (req, res) => {
     try {
         const { message, context } = req.body;
@@ -196,7 +196,7 @@ router.post('/chat', authLimiter, async (req, res) => {
     }
 });
 
-// SOP-specific chat endpoint
+
 router.post('/chat/sop', authLimiter, async (req, res) => {
     try {
         const { message, context } = req.body;

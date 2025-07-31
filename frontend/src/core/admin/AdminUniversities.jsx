@@ -11,7 +11,7 @@ const AdminUniversities = () => {
   const [form] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
-  // Fetch universities
+
   const fetchUniversities = async () => {
     try {
       setLoading(true);
@@ -25,7 +25,7 @@ const AdminUniversities = () => {
     }
   };
 
-  // Handle form submission
+
   const handleSubmit = async (values) => {
     try {
       if (editingUniversity) {
@@ -44,7 +44,7 @@ const AdminUniversities = () => {
     }
   };
 
-  // Handle delete
+
   const handleDelete = async (id) => {
     try {
       await api.delete(`/api/universities/${id}`);
@@ -56,7 +56,7 @@ const AdminUniversities = () => {
     }
   };
 
-  // Set up edit form
+
   const handleEdit = (university) => {
     setEditingUniversity(university);
     form.setFieldsValue({
@@ -71,26 +71,26 @@ const AdminUniversities = () => {
     setIsModalVisible(true);
   };
 
-  // Reset form when modal is closed
+
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
     setEditingUniversity(null);
   };
 
-  // Load data on component mount
+
   useEffect(() => {
     fetchUniversities();
   }, []);
 
-  // Filter universities based on search text
-  const filteredUniversities = universities.filter(uni => 
+
+  const filteredUniversities = universities.filter(uni =>
     uni.university_name.toLowerCase().includes(searchText.toLowerCase()) ||
     uni.city.toLowerCase().includes(searchText.toLowerCase()) ||
     uni.country.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  // Table columns
+
   const columns = [
     {
       title: 'University Name',
@@ -120,15 +120,15 @@ const AdminUniversities = () => {
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
+          <Button
+            type="text"
+            icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           />
-          <Button 
-            type="text" 
-            danger 
-            icon={<DeleteOutlined />} 
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => {
               if (window.confirm('Are you sure you want to delete this university?')) {
                 handleDelete(record._id);
@@ -144,8 +144,8 @@ const AdminUniversities = () => {
     <div className="admin-universities">
       <div className="flex justify-between items-center mb-4">
         <h2>Manage Universities</h2>
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           icon={<PlusOutlined />}
           onClick={() => setIsModalVisible(true)}
         >
@@ -164,9 +164,9 @@ const AdminUniversities = () => {
           />
         </div>
 
-        <Table 
-          columns={columns} 
-          dataSource={filteredUniversities} 
+        <Table
+          columns={columns}
+          dataSource={filteredUniversities}
           rowKey="_id"
           loading={loading}
           pagination={{ pageSize: 10 }}

@@ -1,7 +1,7 @@
 import api from './api';
 
 const authApi = {
-  // Authentication endpoints
+  
   login: (credentials) => api.post('/auth/login', credentials, { withCredentials: true }),
   register: (userData) => api.post('/auth/register', userData),
   refreshToken: (refreshToken) => api.post('/auth/refresh-token', { refreshToken }),
@@ -13,7 +13,7 @@ const authApi = {
   changePassword: (currentPassword, newPassword) => 
     api.put('/auth/change-password', { currentPassword, newPassword }),
   
-  // MFA endpoints - these are mounted under /api/auth in the backend
+  
   setupMfa: () => api.get('/auth/mfa/setup'),
   verifyMfa: (data) => api.post('/auth/mfa/verify', data),
   verifyMfaLogin: (data) => api.post('/auth/mfa/verify-login', data),

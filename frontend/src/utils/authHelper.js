@@ -1,10 +1,10 @@
 import API from './api';
 
-// Token storage keys
+
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
-// Cookie helper functions
+
 const setCookie = (name, value, days = 30) => {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -28,7 +28,7 @@ const deleteCookie = (name) => {
     document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
 };
 
-// Store access token
+
 const storeAccessToken = (token) => {
     try {
         sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
@@ -39,24 +39,24 @@ const storeAccessToken = (token) => {
     }
 };
 
-// Get access token
+
 const getToken = () => {
     return sessionStorage.getItem(ACCESS_TOKEN_KEY);
 };
 
-// Set access token (alias for storeAccessToken for backward compatibility)
+
 const setToken = (token) => storeAccessToken(token);
 
-// Get refresh token from cookie
+
 const getRefreshToken = () => {
     return getCookie(REFRESH_TOKEN_KEY);
 };
 
-// Set refresh token in HTTP-only cookie
+
 const setRefreshToken = (token) => {
     if (!token) return false;
     try {
-        setCookie(REFRESH_TOKEN_KEY, token, 30); // 30 days expiry
+        setCookie(REFRESH_TOKEN_KEY, token, 30);
         return true;
     } catch (error) {
         console.error('Error storing refresh token:', error);
@@ -64,17 +64,17 @@ const setRefreshToken = (token) => {
     }
 };
 
-// Check if user is authenticated
+
 const isAuthenticated = () => {
     return !!getToken();
 };
 
 const clearUserData = () => {
     try {
-        // Clear access token from sessionStorage
+
         sessionStorage.removeItem(ACCESS_TOKEN_KEY);
 
-        // Clear refresh token from cookies
+
         deleteCookie(REFRESH_TOKEN_KEY);
 
         return true;
@@ -84,7 +84,7 @@ const clearUserData = () => {
     }
 };
 
-// Fetch CSRF token from backend before login
+
 export const fetchCSRFToken = async () => {
     try {
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://localhost:3443/api'}/auth/csrf-token`, {
@@ -95,7 +95,7 @@ export const fetchCSRFToken = async () => {
             sessionStorage.setItem('csrfToken', data.csrfToken);
             return data.csrfToken;
         }
-        // fallback: try to get from header
+
         const headerToken = response.headers.get('X-CSRF-Token');
         if (headerToken) {
             sessionStorage.setItem('csrfToken', headerToken);
@@ -110,29 +110,29 @@ export const fetchCSRFToken = async () => {
 
 const loginUser = async (credentials) => {
     try {
-        // Fetch CSRF token before login
+
         await fetchCSRFToken();
 
-        console.log("Logging in with credentials:", credentials);
+
         const response = await API.post("/auth/login", credentials);
 
         if (response.data && response.data.access_token && response.data.refresh_token) {
-            // Store access token in sessionStorage
+
             setToken(response.data.access_token);
 
-            // Store refresh token in HTTP-only cookie
+
             setRefreshToken(response.data.refresh_token);
 
             const isNewUser = sessionStorage.getItem('isNewUser') === 'true';
             sessionStorage.removeItem('isNewUser');
 
-            // Get user data from the token, not from response
+
             const userData = getUser();
 
             return {
                 success: true,
                 message: 'Login successful',
-                user: userData, // Use user data from token
+                user: userData,
                 isNewUser
             };
         }
@@ -149,7 +149,7 @@ const loginUser = async (credentials) => {
 
 const registerUser = async (userData) => {
     try {
-        console.log("registering:", userData);
+
         const response = await API.post("/users/register", userData);
 
         sessionStorage.setItem('isNewUser', 'true');
@@ -165,7 +165,7 @@ const verifyOTP = async (payload) => {
         const response = await API.post("/auth/verify-otp", payload);
 
         if (response.data && response.data.success) {
-            // For registration success, return success status for redirection
+
             if (response.data.message === "Registration successful") {
                 return {
                     success: true,
@@ -174,13 +174,13 @@ const verifyOTP = async (payload) => {
                 };
             }
 
-            // For other OTP verifications (like password reset)
+
             if (response.data.access_token && response.data.refresh_token) {
-                // Store access token in sessionStorage
+
                 setToken(response.data.access_token);
-                // Store refresh token in HTTP-only cookie
+
                 setRefreshToken(response.data.refresh_token);
-                // Get user data from the token
+
                 const userData = getUser();
 
                 return {
@@ -202,19 +202,19 @@ const verifyOTP = async (payload) => {
     }
 };
 
-// Get current user from token (minimal implementation)
+
 const getUser = () => {
     const token = getToken();
     if (!token) return null;
 
     try {
-        // Extract user info from token (only non-sensitive data)
+
         const payload = JSON.parse(atob(token.split('.')[1]));
         return {
             id: payload.sub,
             email: payload.email,
             role: payload.role,
-            // Add other non-sensitive claims from the token as needed
+
         };
     } catch (error) {
         console.error('Error parsing token:', error);
@@ -222,14 +222,14 @@ const getUser = () => {
     }
 };
 
-// This is a no-op function since we don't want to store user data in sessionStorage
-// Keeping it for backward compatibility
+
+
 const setUser = () => {
     console.warn('setUser is deprecated. User data is now only stored in the token.');
     return true;
 };
 
-// Export all functions
+
 export {
     clearUserData,
     clearUserData as clearToken,

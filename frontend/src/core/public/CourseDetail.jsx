@@ -413,7 +413,7 @@ const CourseDetail = () => {
 
   const handleViewDetails = (e, scholarshipName) => {
     if (handleAuthRequired(e)) {
-      console.log('View details for:', scholarshipName);
+      //console.log('View details for:', scholarshipName);
     }
   };
 
@@ -467,13 +467,13 @@ const CourseDetail = () => {
         setIsLoading(true);
         const courseData = await getCourseById(id);
         setCourse(courseData);
-        console.log('Course data:', courseData);
+        //console.log('Course data:', courseData);
 
         if (courseData.university?._id) {
-          console.log('Fetching scholarships for university:', courseData.university._id);
+          //console.log('Fetching scholarships for university:', courseData.university._id);
           await fetchScholarships(courseData.university._id);
         } else {
-          console.log('No university ID found in course data');
+          //console.log('No university ID found in course data');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -491,11 +491,11 @@ const CourseDetail = () => {
     setIsLoadingScholarships(true);
     try {
       const response = await getScholarshipsByUniversityId(universityId);
-      console.log('Scholarships response:', response);
+      //console.log('Scholarships response:', response);
 
       const scholarshipsData = Array.isArray(response) ? response : [];
 
-      console.log('Extracted scholarships:', scholarshipsData);
+      //console.log('Extracted scholarships:', scholarshipsData);
       setScholarships(scholarshipsData);
     } catch (error) {
       console.error('Error fetching scholarships:', error);
