@@ -56,11 +56,12 @@ function App() {
     { path: "/contact", element: <Suspense fallback={<div>Loading...</div>}><ContactUs /></Suspense> },
     { path: "/help", element: <Suspense fallback={<div>Loading...</div>}><Help /></Suspense> },
     { path: "/programs", element: <Suspense fallback={<div>Loading...</div>}><Courses /></Suspense> },
+    { path: "/", element: <Suspense fallback={<div>Loading...</div>}><Dashboard /></Suspense> },
+
   ];
 
   // Protected routes (authentication required)
   const protectedRoutes = [
-    { path: "/", element: <Suspense fallback={<div>Loading...</div>}><Dashboard /></Suspense> },
     { path: "/profile", element: <Suspense fallback={<div>Loading...</div>}><ProfileStepper /></Suspense> },
     { path: "/my-plan", element: <Suspense fallback={<div>Loading...</div>}><MyPlan /></Suspense> },
     { path: "/my-applications", element: <Suspense fallback={<div>Loading...</div>}><Applications /></Suspense> },

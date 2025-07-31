@@ -42,28 +42,28 @@ const Login = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
+
         const sanitizedValue = sanitizeInput(value);
         setForm(prev => ({ ...prev, [name]: sanitizedValue }));
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); 
-        e.stopPropagation(); 
+        e.preventDefault();
+        e.stopPropagation();
 
-        
+
         const sanitizedForm = {
             email: sanitizeInput(form.email).trim(),
             password: sanitizeInput(form.password)
         };
 
-        
+
         if (!sanitizedForm.email || !sanitizedForm.password) {
             toast.error('Please enter both email and password');
             return false;
         }
 
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(sanitizedForm.email)) {
             toast.error('Please enter a valid email address');
@@ -74,9 +74,9 @@ const Login = () => {
         setError('');
 
         try {
-            
+
             await fetchCSRFToken();
-            
+
             const response = await authApi.login({
                 email: sanitizedForm.email,
                 password: sanitizedForm.password,
@@ -87,7 +87,7 @@ const Login = () => {
             }
 
             if (response.data.requiresMFA) {
-                
+
                 setMfaVerification({
                     show: true,
                     tempToken: response.data.tempToken,
@@ -97,23 +97,25 @@ const Login = () => {
             }
 
             if (response.data) {
-                
+
                 const { accessToken, refreshToken, user } = response.data;
 
-                
+
                 if (accessToken) setToken(accessToken);
                 if (refreshToken) setRefreshToken(refreshToken);
                 if (user) setUser(user);
 
-                
+
                 loginUser(user || response.data);
 
-                
+
                 toast.success("Login successful!");
 
-                
+
                 if (redirectPath) {
                     navigate(redirectPath);
+                } else if (user?.role === 'admin') {
+                    navigate("/admin");
                 } else if (fromVerify || user?.isNewUser) {
                     navigate("/profile", { state: { fromLogin: true } });
                 } else {
@@ -136,30 +138,32 @@ const Login = () => {
     };
 
     const handleMfaVerificationComplete = (data) => {
-        
+
         setMfaVerification({
             show: false,
             tempToken: '',
             user: null
         });
 
-        
+
         const { accessToken, refreshToken, user } = data;
 
-        
+
         if (accessToken) setToken(accessToken);
         if (refreshToken) setRefreshToken(refreshToken);
         if (user) setUser(user);
 
-        
+
         loginUser(user || data);
 
-        
+
         toast.success("Login successful!");
 
-        
+
         if (redirectPath) {
             navigate(redirectPath);
+        } else if (user?.role === 'admin') {
+            navigate("/admin");
         } else if (fromVerify || user?.isNewUser) {
             navigate("/profile", { state: { fromLogin: true } });
         } else {
